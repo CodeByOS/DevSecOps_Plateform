@@ -17,9 +17,6 @@ const pipelineRoutes = require('./routes/pipelineRoutes');
 const webhookRoutes  = require('./routes/webhookRoutes');
 const auditRoutes    = require('./routes/auditRoutes');
 
-//* Connect to MongoDB 
-connectDB();
-
 const app = express();
 
 //* Security middleware
@@ -80,8 +77,12 @@ app.use(errorHandler);
 //* Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`\n SecOps Platform API running on port ${PORT}`);
-  console.log(`   Mode : ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   Health: http://localhost:${PORT}/health\n`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Mode : ${process.env.NODE_ENV || 'development'}`);
+      console.log(`Health: http://localhost:${PORT}/health\n`);
+    });
+  })
+  .catch(err => console.log("Failed to run server..", err));
