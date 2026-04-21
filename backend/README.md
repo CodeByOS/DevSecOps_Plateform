@@ -1,92 +1,145 @@
-# SecOps Platform Backend
+# SecOps Platform — Backend API
 
-This is the backend for the SecOps Platform, a CI/CD pipeline with integrated security features. The application is built using Express.js and MongoDB with Mongoose, following the MVC architecture.
+Express.js REST API with MVC architecture for the SecOps Platform.
 
-## Project Structure
+## Folder Structure
 
 ```
-secops-platform-backend
-├── src
-│   ├── server.js               # Entry point of the application
-│   ├── app.js                  # Express application setup
-│   ├── config
-│   │   └── database.js         # MongoDB connection configuration
-│   ├── controllers
-│   │   ├── auth.controller.js   # User authentication logic
-│   │   ├── project.controller.js # Project management logic
-│   │   └── pipeline.controller.js # Pipeline management logic
-│   ├── models
-│   │   ├── User.model.js        # User schema
-│   │   ├── Project.model.js     # Project schema
-│   │   ├── Pipeline.model.js     # Pipeline schema
-│   │   └── AuditLog.model.js    # Audit log schema
-│   ├── routes
-│   │   ├── index.js            # Route setup
-│   │   ├── auth.routes.js       # Authentication routes
-│   │   ├── project.routes.js     # Project routes
-│   │   └── pipeline.routes.js    # Pipeline routes
-│   ├── middleware
-│   │   ├── errorHandler.js      # Error handling middleware
-│   │   └── notFound.js          # 404 handling middleware
-│   └── utils
-│       └── ApiError.js          # Custom error class
-├── .env                         # Environment variables
-├── .env.example                 # Example environment variables
-├── package.json                 # NPM dependencies and scripts
-└── README.md                    # Project documentation
+secops-backend/
+├── config/
+│   └── db.js                  # MongoDB connection
+├── controllers/
+│   ├── authController.js      # Register, login, logout, refresh
+│   ├── projectController.js   # CRUD projects + team members
+│   ├── pipelineController.js  # List, detail, override, stats
+│   ├── webhookController.js   # GitHub webhook receiver
+│   └── auditController.js     # Read-only audit trail
+├── middleware/
+│   ├── auth.js                # JWT protect + role authorize
+│   └── errorHandler.js        # Central error handler
+├── models/
+│   ├── User.js                # Users with JWT methods
+│   ├── Project.js             # Projects + gate config
+│   ├── Pipeline.js            # Pipeline runs + steps
+│   ├── ScanResult.js          # SAST / SCA / DAST / ML results
+│   └── AuditLog.js            # Immutable audit trail
+├── routes/
+│   ├── authRoutes.js
+│   ├── projectRoutes.js
+│   ├── pipelineRoutes.js
+│   ├── webhookRoutes.js
+│   └── auditRoutes.js
+├── utils/
+│   ├── asyncHandler.js        # Wraps async controllers
+│   ├── notifications.js       # Slack + email helpers
+│   └── pipelineRunner.js      # Core pipeline orchestrator
+├── .env.example
+├── package.json
+└── server.js                  # Entry point
 ```
 
-## Getting Started
+## Setup
 
-### Prerequisites
+```bash
+# 1. Install dependencies
+npm install
 
-- Node.js (version 14 or higher)
-- MongoDB (local or cloud instance)
+# 2. Copy and fill environment variables
+cp .env.example .env
 
-### Installation
-
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd secops-platform-backend
-   ```
-
-2. Install dependencies:
-   ```
-   npm install
-   ```
-
-3. Set up environment variables:
-   - Copy `.env.example` to `.env` and update the MongoDB connection string.
-
-### Running the Application
-
-To start the application in development mode, run:
-```
+# 3. Start in development mode
 npm run dev
+
+# 4. Or start in production
+npm start
 ```
 
-### API Endpoints
+## API Endpoints
 
-- **Authentication**
-  - `POST /api/auth/register` - Register a new user
-  - `POST /api/auth/login` - Log in an existing user
+### Auth
+| Method | Endpoint             | Description              | Auth |
+|--------|----------------------|--------------------------|------|
+| POST   | /api/auth/register   | Register a new user      | No   |
+| POST   | /api/auth/login      | Login and get tokens     | No   |
+| POST   | /api/auth/refresh    | Refresh access token     | No   |
+| POST   | /api/auth/logout     | Logout (invalidate token)| Yes  |
+| GET    | /api/auth/me         | Get current user         | Yes  |
 
-- **Projects**
-  - `POST /api/projects` - Create a new project
-  - `GET /api/projects` - Retrieve all projects
-  - `GET /api/projects/:id` - Retrieve a specific project
-  - `PUT /api/projects/:id` - Update a specific project
-  - `DELETE /api/projects/:id` - Delete a specific project
+### Projects
+| Method | Endpoint                              | Description           | Auth  |
+|--------|---------------------------------------|-----------------------|-------|
+| GET    | /api/projects                         | List projects         | Yes   |
+| POST   | /api/projects                         | Create project        | Yes   |
+| GET    | /api/projects/:id                     | Get project           | Yes   |
+| PUT    | /api/projects/:id                     | Update project        | Yes   |
+| DELETE | /api/projects/:id                     | Delete project        | Yes   |
+| POST   | /api/projects/:id/members             | Add team member       | Yes   |
+| DELETE | /api/projects/:id/members/:userId     | Remove team member    | Yes   |
 
-- **Pipelines**
-  - `POST /api/pipelines` - Create a new pipeline
-  - `GET /api/pipelines` - Retrieve all pipelines
+### Pipelines
+| Method | Endpoint                                       | Description         | Auth  |
+|--------|------------------------------------------------|---------------------|-------|
+| GET    | /api/projects/:projectId/pipelines             | List pipelines      | Yes   |
+| GET    | /api/projects/:projectId/pipelines/stats       | Dashboard stats     | Yes   |
+| GET    | /api/pipelines/:id                             | Pipeline + results  | Yes   |
+| POST   | /api/pipelines/:id/override                    | Override gate       | Admin |
 
-### Error Handling
+### Webhooks
+| Method | Endpoint              | Description              | Auth           |
+|--------|-----------------------|--------------------------|----------------|
+| POST   | /api/webhooks/github  | GitHub push webhook      | HMAC signature |
 
-The application includes basic error handling for invalid requests and 404 errors. Custom error messages are returned in the response.
+### Audit
+| Method | Endpoint    | Description       | Auth  |
+|--------|-------------|-------------------|-------|
+| GET    | /api/audit  | Get audit logs    | Yes   |
 
-### License
+## GitHub Webhook Setup
 
-This project is licensed under the MIT License.
+1. Go to your GitHub repo → **Settings → Webhooks → Add webhook**
+2. Set Payload URL to: `https://your-domain.com/api/webhooks/github`
+3. Content type: `application/json`
+4. Secret: copy the `webhookSecret` from your project (GET /api/projects/:id)
+5. Events: select **Just the push event**
+
+## Pipeline Flow
+
+```
+GitHub push
+    │
+    ▼
+POST /api/webhooks/github
+    │  (verify HMAC signature)
+    │  (create Pipeline document)
+    │  (respond 200 immediately)
+    │
+    ▼ [async - non-blocking]
+pipelineRunner.js
+    │
+    ├─► SAST  (SonarQube API)
+    ├─► SCA   (Dependency Check)
+    ├─► DAST  (OWASP ZAP API)
+    ├─► ML    (Flask /score endpoint)
+    └─► Gate  (score vs threshold)
+              │
+              ├─ approved → Pipeline status: completed
+              └─ blocked  → Pipeline status: blocked
+                           → Slack + email notification
+```
+
+## Environment Variables
+
+| Variable              | Description                            |
+|-----------------------|----------------------------------------|
+| PORT                  | Server port (default: 5000)            |
+| MONGO_URI             | MongoDB connection string              |
+| JWT_SECRET            | Secret for access tokens               |
+| JWT_REFRESH_SECRET    | Secret for refresh tokens              |
+| GITHUB_WEBHOOK_SECRET | Default webhook secret (overridden per project) |
+| SONARQUBE_URL         | SonarQube base URL                     |
+| SONARQUBE_TOKEN       | SonarQube API token                    |
+| ZAP_URL               | OWASP ZAP daemon URL                   |
+| ZAP_API_KEY           | ZAP API key                            |
+| ML_SERVICE_URL        | Python Flask ML service URL            |
+| SLACK_WEBHOOK_URL     | Slack incoming webhook URL             |
+| SMTP_*                | Email (Nodemailer) configuration       |
