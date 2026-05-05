@@ -1,0 +1,34 @@
+{
+  "version": "1.0.0",
+  "algorithm": "LogisticRegression",
+  "features": [
+    "nb_critical",
+    "nb_high",
+    "nb_medium",
+    "nb_critical_cves",
+    "nb_high_cves",
+    "max_cvss",
+    "outdated_count",
+    "nb_high_alerts",
+    "nb_medium_alerts",
+    "nb_xss",
+    "nb_sqli"
+  ],
+  "feature_importances": {
+    "nb_critical": 3.1311,
+    "nb_high": 3.4339,
+    "nb_medium": 0.8954,
+    "nb_critical_cves": 2.7198,
+    "nb_high_cves": 3.1724,
+    "max_cvss": 0.752,
+    "outdated_count": -0.0231,
+    "nb_high_alerts": 2.3547,
+    "nb_medium_alerts": -0.1483,
+    "nb_xss": 0.7258,
+    "nb_sqli": 0.343
+  },
+  "f1_score": 0.976,
+  "auc_roc": 0.9986,
+  "training_samples": 600,
+  "trained_at": "2026-05-05T09:36:53.531962Z"
+}
