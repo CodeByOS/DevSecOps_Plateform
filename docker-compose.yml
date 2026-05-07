@@ -2,17 +2,40 @@ version: "3.9"
 
 services:
 
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+    depends_on:
+      - backend
+      - frontend
+
+    networks:
+      - secops-network
+
+  # Backend (Node.js)
   backend:
     build: ./backend
     container_name: backend
-
     restart: always
 
     ports:
       - "4000:4000"
 
     env_file:
-      - .env
+      - ./backend/.env # Fix #1: was ".env" (project root has no .env)
+
+    environment:
+      NODE_ENV: production # Fix #7: was "development" in .env
 
     depends_on:
       - ml-service
@@ -22,17 +45,19 @@ services:
     networks:
       - secops-network
 
+  # Frontend (React → Nginx static)
   frontend:
     build: ./frontend
     container_name: frontend
-
     restart: always
 
     ports:
       - "5173:5173"
 
     environment:
-      VITE_API_URL: http://localhost:4000
+      # Fix #2: empty string → React code uses relative paths (e.g. /api/...)
+      # Nginx proxies /api/ → backend:4000, so no absolute URL needed.
+      VITE_API_URL: ""
 
     depends_on:
       - backend
@@ -40,10 +65,10 @@ services:
     networks:
       - secops-network
 
+  # ML Service (Python / Flask)
   ml-service:
     build: ./ml-service
     container_name: ml-service
-
     restart: always
 
     ports:
@@ -52,33 +77,48 @@ services:
     networks:
       - secops-network
 
+  # SonarQube 
   sonarqube:
     image: sonarqube:lts-community
     container_name: sonarqube
-
     restart: always
 
     ports:
       - "9000:9000"
 
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
     networks:
       - secops-network
 
+  # OWASP ZAP
   zap:
     image: zaproxy/zap-stable
     container_name: zap
-
     restart: always
 
     ports:
       - "8090:8090"
 
     command: >
-      zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=false -config api.key=your_zap_api_key
+      zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=false -config api.key=vnfrd3l2p6q44f9nt9agcbkifc
 
     networks:
       - secops-network
 
+# Volumes 
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+
+    # Networks 
 networks:
   secops-network:
     driver: bridge
