@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build: ./backend
+    container_name: backend
+
+    restart: always
+
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - .env
+
+    depends_on:
+      - ml-service
+      - sonarqube
+      - zap
+
+    networks:
+      - secops-network
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+
+    restart: always
+
+    ports:
+      - "5173:5173"
+
+    environment:
+      VITE_API_URL: http://localhost:4000
+
+    depends_on:
+      - backend
+
+    networks:
+      - secops-network
+
+  ml-service:
+    build: ./ml-service
+    container_name: ml-service
+
+    restart: always
+
+    ports:
+      - "5001:5001"
+
+    networks:
+      - secops-network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    container_name: sonarqube
+
+    restart: always
+
+    ports:
+      - "9000:9000"
+
+    networks:
+      - secops-network
+
+  zap:
+    image: zaproxy/zap-stable
+    container_name: zap
+
+    restart: always
+
+    ports:
+      - "8090:8090"
+
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=false -config api.key=your_zap_api_key
+
+    networks:
+      - secops-network
+
+networks:
+  secops-network:
+    driver: bridge

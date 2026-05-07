@@ -4,31 +4,42 @@ services:
   sonarqube:
     image: sonarqube:community
     container_name: sonarqube
+
     ports:
       - "9000:9000"
+
     environment:
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
+
     networks:
       - secops-network
 
   sonar-scanner:
     image: sonarsource/sonar-scanner-cli
     container_name: sonar-scanner
+
     depends_on:
       - sonarqube
+
     working_dir: /usr/src
+
     volumes:
-      - ./:/usr/src
+      - ./:/usr/src:ro
+
     environment:
       SONAR_HOST_URL: http://sonarqube:9000
-      SONAR_LOGIN: ${SONAR_TOKEN}
+      SONAR_TOKEN: ${SONAR_TOKEN}
+
     networks:
       - secops-network
-    entrypoint: ["sonar-scanner"]
+
+    entrypoint: >
+      sonar-scanner -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${SONAR_TOKEN}
 
 volumes:
   sonarqube_data:
