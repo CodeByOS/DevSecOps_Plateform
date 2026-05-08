@@ -3,43 +3,79 @@ const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const asyncHandler = require('../utils/asyncHandler');
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
+
+// Helper: send access + refresh tokens
 const sendTokens = (user, statusCode, res) => {
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
-  // Store refresh token in httpOnly cookie (more secure than localStorage)
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
-  });
+  res.cookie('refreshToken', refreshToken, cookieOptions);
 
   res.status(statusCode).json({
     success: true,
     accessToken,
     user: {
-      id:    user._id,
-      name:  user.name,
+      id: user._id,
+      name: user.name,
       email: user.email,
-      role:  user.role,
+      role: user.role,
     },
   });
 };
 
 //* POST /api/auth/register
 const register = asyncHandler(async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
-  // Create the user (password is hashed in the model's pre-save hook)
-  const user = await User.create({ name, email, password, role });
+  // Validation
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide all required fields',
+    });
+  }
 
-  await AuditLog.log({
-    user:    user._id,
-    action:  'REGISTER',
-    details: { email },
-    ipAddress: req.ip,
+  // Normalize email
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Check existing user
+  const existingUser = await User.findOne({
+    email: normalizedEmail,
   });
+
+  if (existingUser) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email already registered',
+    });
+  }
+
+  // Create user
+  // Never trust role from client input
+  const user = await User.create({
+    name: name.trim(),
+    email: normalizedEmail,
+    password,
+    role: 'developer',
+  });
+
+  // Audit log
+  try {
+    await AuditLog.log({
+      user: user._id,
+      action: 'REGISTER',
+      details: { email: user.email },
+      ipAddress: req.ip,
+    });
+  } catch (err) {
+    console.error('Audit log failed:', err.message);
+  }
 
   sendTokens(user, 201, res);
 });
@@ -49,22 +85,46 @@ const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ success: false, message: 'Email and password are required' });
+    return res.status(400).json({
+      success: false,
+      message: 'Email and password are required',
+    });
   }
 
-  // Include password in query (excluded by default with select: false)
-  const user = await User.findOne({ email }).select('+password');
+  const normalizedEmail = email.toLowerCase().trim();
 
-  if (!user || !(await user.comparePassword(password))) {
-    return res.status(401).json({ success: false, message: 'Invalid email or password' });
+  // Include password explicitly
+  const user = await User.findOne({
+    email: normalizedEmail,
+  }).select('+password');
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid email or password',
+    });
   }
 
-  await AuditLog.log({
-    user:    user._id,
-    action:  'LOGIN',
-    details: { email },
-    ipAddress: req.ip,
-  });
+  const isMatch = await user.comparePassword(password);
+
+  if (!isMatch) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid email or password',
+    });
+  }
+
+  // Audit log
+  try {
+    await AuditLog.log({
+      user: user._id,
+      action: 'LOGIN',
+      details: { email: user.email },
+      ipAddress: req.ip,
+    });
+  } catch (err) {
+    console.error('Audit log failed:', err.message);
+  }
 
   sendTokens(user, 200, res);
 });
@@ -74,41 +134,100 @@ const refresh = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'No refresh token' });
+    return res.status(401).json({
+      success: false,
+      message: 'No refresh token provided',
+    });
   }
 
-  const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+  let decoded;
+
+  try {
+    decoded = jwt.verify(
+      token,
+      process.env.JWT_REFRESH_SECRET
+    );
+  } catch (err) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired refresh token',
+    });
+  }
+
+  // Validate token type
+  if (decoded.type !== 'refresh') {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid token type',
+    });
+  }
+
   const user = await User.findById(decoded.id);
 
-  if (!user || decoded.tokenVersion !== user.tokenVersion) {
-    return res.status(401).json({ success: false, message: 'Invalid refresh token' });
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: 'User no longer exists',
+    });
   }
 
-  // Issue a fresh access token
-  const accessToken = user.generateAccessToken();
-  res.json({ success: true, accessToken });
+  // Token revocation check
+  if (decoded.tokenVersion !== user.tokenVersion) {
+    return res.status(401).json({
+      success: false,
+      message: 'Refresh token has been revoked',
+    });
+  }
+
+  // Rotate refresh token + issue new access token
+  sendTokens(user, 200, res);
 });
 
-//* POST /api/auth/logout 
+//* POST /api/auth/logout
 const logout = asyncHandler(async (req, res) => {
-  // Increment tokenVersion to invalidate all existing tokens for this user
-  await User.findByIdAndUpdate(req.user._id, { $inc: { tokenVersion: 1 } });
-
-  // Clear the refresh token cookie
-  res.clearCookie('refreshToken');
-
-  await AuditLog.log({
-    user:    req.user._id,
-    action:  'LOGOUT',
-    ipAddress: req.ip,
+  // Invalidate all tokens for this user
+  await User.findByIdAndUpdate(req.user._id, {
+    $inc: { tokenVersion: 1 },
   });
 
-  res.json({ success: true, message: 'Logged out successfully' });
+  // Clear refresh token cookie
+  res.clearCookie('refreshToken', cookieOptions);
+
+  // Audit log
+  try {
+    await AuditLog.log({
+      user: req.user._id,
+      action: 'LOGOUT',
+      ipAddress: req.ip,
+    });
+  } catch (err) {
+    console.error('Audit log failed:', err.message);
+  }
+
+  res.json({
+    success: true,
+    message: 'Logged out successfully',
+  });
 });
 
 //* GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
-  res.json({ success: true, user: req.user });
+  res.json({
+    success: true,
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      createdAt: req.user.createdAt,
+    },
+  });
 });
 
-module.exports = { register, login, refresh, logout, getMe };
+module.exports = {
+  register,
+  login,
+  refresh,
+  logout,
+  getMe,
+};

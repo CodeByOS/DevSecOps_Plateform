@@ -69,7 +69,7 @@ UserSchema.methods.generateAccessToken = function () {
 //* Generate long-lived refresh token (7 days)
 UserSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
-        { id: this._id, tokenVersion: this.tokenVersion },
+        { id: this._id, tokenVersion: this.tokenVersion, type: 'refresh' },
         process.env.JWT_REFRESH_SECRET,
         { expiresIn: process.env.JWT_REFRESH_EXPIRE || '7d' }
     );
