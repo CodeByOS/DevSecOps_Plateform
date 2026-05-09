@@ -27,6 +27,14 @@ const ProjectSchema = new mongoose.Schema(
       default: 'main',
     },
 
+    //* URL of the deployed staging environment — required for DAST (ZAP)
+    // Leave empty to skip the DAST step for this project
+    stagingUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+
     //* Secret used to verify incoming GitHub webhook signatures
     webhookSecret: {
       type: String,

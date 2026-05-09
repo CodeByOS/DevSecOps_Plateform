@@ -30,7 +30,7 @@ const runSonarScanner = (codePath, projectKey) => {
         // Mount the cloned code as /src, run the scanner against SonarQube
         const args = [
             'run', '--rm',
-            '--network', 'secops-internal',              // same network as SonarQube
+            '--network', 'secops-network',               // same network as SonarQube
             '-v', `${codePath}:/usr/src`,                // mount source code
             'sonarsource/sonar-scanner-cli:latest',
             `-Dsonar.projectKey=${projectKey}`,
@@ -50,6 +50,8 @@ const runSonarScanner = (codePath, projectKey) => {
         });
     });
 };
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 //! Step 3: Poll the CE (Compute Engine) task until analysis is done 
 const waitForAnalysis = async (projectKey, timeoutMs = 120_000) => {
@@ -124,6 +126,6 @@ const normalizeSeverity = (s) => {
     return m[s.toUpperCase()] || 'low';
 };
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 
 module.exports = { runSast };
