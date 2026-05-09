@@ -35,7 +35,7 @@ const runDepCheckContainer = (codePath, reportDir) => {
             '-v', `${codePath}:/src:ro`,           // source code (read-only)
             '-v', `${reportDir}:/report`,           // output report
             '-v', `depcheck_data:/usr/share/dependency-check/data`, // NVD cache
-            '--network', 'secops-internal',
+            '--network', 'secops-network',
             'owasp/dependency-check:latest',
             '--scan', '/src',
             '--format', 'JSON',

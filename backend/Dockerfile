@@ -16,6 +16,9 @@ RUN npm ci --omit=dev
 #! Stage 3: Final production image
 FROM base AS production
 
+# Install git — required by cloneService.js to clone repositories before scanning
+RUN apk add --no-cache git
+
 # Create a non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
