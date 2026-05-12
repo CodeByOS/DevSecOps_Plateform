@@ -23,6 +23,12 @@ const getAuditLogs = asyncHandler(async (req, res) => {
   if (req.query.action)    filter.action    = req.query.action;
   if (req.query.projectId) filter.project   = req.query.projectId;
 
+  if (req.query.from || req.query.to) {
+    filter.createdAt = {};
+    if (req.query.from) filter.createdAt.$gte = new Date(req.query.from);
+    if (req.query.to)   filter.createdAt.$lte = new Date(req.query.to);
+  }
+
   const total = await AuditLog.countDocuments(filter);
 
   const logs = await AuditLog.find(filter)
