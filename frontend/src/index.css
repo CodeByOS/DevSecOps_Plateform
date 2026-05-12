@@ -1,1 +1,291 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ── Design Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Backgrounds - Warm, sophisticated dark theme */
+  --bg-base: #0f1117;
+  --bg-card: #16202a;
+  --bg-elevated: #1d2d3d;
+  --bg-hover: #252f3d;
+
+  /* Borders - Subtle depth */
+  --border: #3a4654;
+  --border-subtle: #252f3d;
+
+  /* Text */
+  --text-primary: #e8ecf1;
+  --text-secondary: #c5ccd6;
+  --text-muted: #8b96a6;
+
+  /* Primary accent - More refined blue */
+  --blue: #4fa3ff;
+  --blue-dim: #1a3a5f;
+  --blue-light: #6bb3ff;
+  --blue-dark: #2d6ba6;
+
+  /* Status colors */
+  --green: #42c77f;
+  --green-dim: #1a4d35;
+  --red: #f17a5f;
+  --red-dim: #4a2520;
+  --orange: #e8a844;
+  --orange-dim: #4d3a1a;
+  --purple: #c5a3ff;
+  --purple-dim: #3a2e5f;
+
+  /* Security severity colours */
+  --critical: #f17a5f;
+  --high: #e8a844;
+  --medium: #f0c95f;
+  --low: #8b96a6;
+}
+
+/* ── Global Base ───────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 32px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ── Selection ─────────────────────────────────────────────────── */
+::selection {
+  background: var(--blue-dim);
+  color: var(--blue);
+}
+
+/* ── Transitions ───────────────────────────────────────────────── */
+a,
+button {
+  transition: all 0.15s ease;
+}
+
+/* ── Focus ring ────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Subtle Visual Utilities ─────────────────────────────────── */
+.glass-panel {
+  background: rgba(22, 32, 42, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.soft-glow {
+  box-shadow: 0 0 0 1px var(--border), 0 8px 32px rgba(79, 163, 255, 0.12);
+}
+
+.panel-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: 0.75s;
+}
+
+.panel-sheen:hover::after {
+  left: 150%;
+}
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metric-chip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-dim);
+  transform: translateY(-1px);
+}
+
+/* ── Custom Buttons ───────────────────────────────────────────── */
+.btn-primary {
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(79, 163, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 163, 255, 0.4);
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--blue);
+  background: var(--bg-hover);
+}
+
+/* Card elevation */
+.card-base {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.card-base:hover {
+  border-color: var(--border-subtle);
+  box-shadow: 0 8px 24px rgba(79, 163, 255, 0.1);
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(66, 199, 127, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(66, 199, 127, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(66, 199, 127, 0); }
+}
+
+.status-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulseGlow 2.2s ease-out infinite;
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-approved {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(66, 199, 127, 0.2);
+}
+
+.badge-blocked {
+  background: var(--red-dim);
+  color: var(--red);
+  border: 1px solid rgba(241, 122, 95, 0.2);
+}
+
+.badge-warning {
+  background: var(--orange-dim);
+  color: var(--orange);
+  border: 1px solid rgba(232, 168, 68, 0.2);
+}
+
+.badge-info {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid rgba(79, 163, 255, 0.2);
+}
