@@ -16,6 +16,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const pipelineRoutes = require('./routes/pipelineRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const auditRoutes = require('./routes/auditRoutes');
+const mlRoutes = require('./routes/mlRoutes');
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/ml', mlRoutes);
 
 //* Pipeline routes are nested under projects AND accessible standalone
 // /api/projects/:projectId/pipelines  -> list pipelines for a project
