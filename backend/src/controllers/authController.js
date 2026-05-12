@@ -224,10 +224,48 @@ const getMe = asyncHandler(async (req, res) => {
   });
 });
 
+//* PUT /api/auth/profile
+const updateProfile = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  if (name) user.name = name.trim();
+  await user.save();
+
+  res.json({
+    success: true,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  });
+});
+
+//* PUT /api/auth/password
+const updatePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id).select('+password');
+
+  if (!(await user.comparePassword(currentPassword))) {
+    return res.status(401).json({ success: false, message: 'Invalid current password' });
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({ success: true, message: 'Password updated successfully' });
+});
+
 module.exports = {
   register,
   login,
   refresh,
   logout,
   getMe,
+  updateProfile,
+  updatePassword,
 };
