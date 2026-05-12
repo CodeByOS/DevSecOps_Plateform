@@ -15,9 +15,15 @@ const getPipelines = asyncHandler(async (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const skip  = (page - 1) * limit;
 
-  const total = await Pipeline.countDocuments({ project: projectId });
+  const filter = { project: projectId };
 
-  const pipelines = await Pipeline.find({ project: projectId })
+  if (req.query.status)   filter.status   = req.query.status;
+  if (req.query.decision) filter.decision = req.query.decision;
+  if (req.query.branch)   filter.branch   = { $regex: req.query.branch, $options: 'i' };
+
+  const total = await Pipeline.countDocuments(filter);
+
+  const pipelines = await Pipeline.find(filter)
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
@@ -92,17 +98,23 @@ const overridePipeline = asyncHandler(async (req, res) => {
 });
 
 //* GET /api/projects/:projectId/pipelines/stats 
+//* OR  /api/pipelines/stats
 // @desc  Get pipeline statistics for the dashboard
 // @access Private
 const getPipelineStats = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
+  const match = {};
+
+  if (projectId) {
+    match.project = require('mongoose').Types.ObjectId.createFromHexString(projectId);
+  }
 
   const [total, blocked, completed, avgScoreResult] = await Promise.all([
-    Pipeline.countDocuments({ project: projectId }),
-    Pipeline.countDocuments({ project: projectId, status: 'blocked' }),
-    Pipeline.countDocuments({ project: projectId, status: 'completed' }),
+    Pipeline.countDocuments(match),
+    Pipeline.countDocuments({ ...match, status: 'blocked' }),
+    Pipeline.countDocuments({ ...match, status: 'completed' }),
     Pipeline.aggregate([
-      { $match: { project: require('mongoose').Types.ObjectId.createFromHexString(projectId), score: { $ne: null } } },
+      { $match: { ...match, score: { $ne: null } } },
       { $group: { _id: null, avg: { $avg: '$score' } } },
     ]),
   ]);
@@ -111,10 +123,19 @@ const getPipelineStats = asyncHandler(async (req, res) => {
   const passRate = total > 0 ? (((total - blocked) / total) * 100).toFixed(1) : 0;
 
   // Last 7 pipelines for the mini trend chart
-  const recent = await Pipeline.find({ project: projectId, score: { $ne: null } })
+  const recent = await Pipeline.find({ ...match, score: { $ne: null } })
     .sort({ createdAt: -1 })
     .limit(7)
     .select('score status decision createdAt branch');
+
+  // Recently blocked pipelines (for global dashboard)
+  let recentlyBlocked = [];
+  if (!projectId) {
+    recentlyBlocked = await Pipeline.find({ status: 'blocked' })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('project', 'name');
+  }
 
   res.json({
     success: true,
@@ -125,6 +146,7 @@ const getPipelineStats = asyncHandler(async (req, res) => {
       avgScore,
       passRate,
       recent: recent.reverse(), // oldest first for the chart
+      recentlyBlocked
     },
   });
 });
