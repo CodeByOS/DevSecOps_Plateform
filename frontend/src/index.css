@@ -289,3 +289,54 @@ button {
   color: var(--blue);
   border: 1px solid rgba(79, 163, 255, 0.2);
 }
+
+/* ── Forms ─────────────────────────────────────────────────────── */
+.form-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(79, 163, 255, 0.1);
+}
+
+/* ── Responsive Utilities ──────────────────────────────────────── */
+.show-on-mobile {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .show-on-mobile {
+    display: flex !important;
+  }
+  
+  .flex-col-mobile {
+    flex-direction: column !important;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    display: block;
+  }
+  
+  /* Make header elements wrap nicely if needed */
+  .mobile-header-stack {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
