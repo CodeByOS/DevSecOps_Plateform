@@ -19,7 +19,7 @@ const Layout = () => {
           padding: '24px',
         }}>
           <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}
                 initial={{ opacity: 0, y: 10 }}
