@@ -19,6 +19,14 @@ const protect = async (req, res, next) => {
         // Decode and verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+        // SECURITY FIX: Reject refresh tokens used as access tokens.
+        // Refresh tokens contain { type: 'refresh' }; access tokens have no type field.
+        // Without this check an attacker can extract a refresh token from a cookie and use
+        // it as a Bearer token, bypassing the 15-minute access token expiry entirely.
+        if (decoded.type === 'refresh') {
+            return res.status(401).json({ success: false, message: 'Invalid token type' });
+        }
+
         // Get user from DB to check if they still exist and token version matches
         const user = await User.findById(decoded.id);
 
