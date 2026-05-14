@@ -12,6 +12,18 @@ const asyncHandler = require('../utils/asyncHandler');
 // @access Private
 const getPipelines = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
+
+  // Authorization check
+  const project = await Project.findById(projectId);
+  if (!project) {
+    return res.status(404).json({ success: false, message: 'Project not found' });
+  }
+  const isOwner = project.owner.toString() === req.user._id.toString();
+  const isMember = project.members.some(m => m.user.toString() === req.user._id.toString());
+  if (!isOwner && !isMember && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to access these pipelines' });
+  }
+
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -43,11 +55,19 @@ const getPipelines = asyncHandler(async (req, res) => {
 // @access Private
 const getPipeline = asyncHandler(async (req, res) => {
   const pipeline = await Pipeline.findById(req.params.id)
-    .populate('project', 'name repoUrl gateConfig')
+    .populate('project', 'name repoUrl gateConfig owner members')
     .populate('overrideBy', 'name email');
 
   if (!pipeline) {
     return res.status(404).json({ success: false, message: 'Pipeline not found' });
+  }
+
+  // Authorization check
+  const project = pipeline.project;
+  const isOwner = project.owner.toString() === req.user._id.toString();
+  const isMember = project.members.some(m => m.user.toString() === req.user._id.toString());
+  if (!isOwner && !isMember && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to access this pipeline' });
   }
 
   // Fetch the associated scan results
@@ -111,6 +131,25 @@ const getPipelineStats = asyncHandler(async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid project ID' });
     }
     match.project = new mongoose.Types.ObjectId(projectId);
+
+    // Authorization check for specific project stats
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+    const isOwner = project.owner.toString() === req.user._id.toString();
+    const isMember = project.members.some(m => m.user.toString() === req.user._id.toString());
+    if (!isOwner && !isMember && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized to access these stats' });
+    }
+  } else {
+    // For global stats, admin sees everything, others see only their projects
+    if (req.user.role !== 'admin') {
+      const userProjects = await Project.find({
+        $or: [{ owner: req.user._id }, { 'members.user': req.user._id }],
+      }).select('_id');
+      match.project = { $in: userProjects.map((p) => p._id) };
+    }
   }
 
   const [total, blocked, completed, avgScoreResult] = await Promise.all([

@@ -38,6 +38,14 @@ const getProject = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Project not found' });
   }
 
+  // Authorization check: Admin, Owner, or Member
+  const isOwner = project.owner._id.toString() === req.user._id.toString();
+  const isMember = project.members.some(m => m.user._id.toString() === req.user._id.toString());
+  
+  if (!isOwner && !isMember && req.user.role !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to access this project' });
+  }
+
   res.json({ success: true, data: project });
 });
 

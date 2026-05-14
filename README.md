@@ -1,109 +1,132 @@
-# DevSecOps Platform
+# 🛡️ SecOps Platform
 
-An integrated DevSecOps platform built to streamline secure software development pipelines. The platform features a React/Vite frontend, a Node.js/Express backend, and a Python Machine Learning service. It seamlessly integrates with industry-standard security tools like SonarQube and OWASP ZAP to provide continuous security analysis.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-## Architecture
+An enterprise-grade **DevSecOps Orchestration Platform** designed to unify security testing, machine learning insights, and automated delivery pipelines. 
 
-The system is composed of several microservices coordinated via Docker Compose:
+> **Bridging the gap between Development, Security, and Operations.**
 
-- **Frontend:** React + Vite application styled with TailwindCSS, providing an intuitive dashboard for managing security pipelines, project configurations, and audit logs.
-- **Backend:** Node.js + Express REST API managing users, authentication (JWT), GitHub webhook events, Slack notifications, and orchestration of security scans. Uses MongoDB Atlas as the primary database.
-- **ML Service:** A Python (Flask + Scikit-Learn) service designed to run machine learning models, likely for threat detection, anomaly analysis, or security predictions.
-- **Nginx:** Acts as a reverse proxy, routing traffic to the frontend and backend services.
-- **SonarQube:** Integrated for Continuous Code Quality and Static Application Security Testing (SAST).
-- **OWASP ZAP:** Integrated for Dynamic Application Security Testing (DAST) on web applications.
+---
 
-## Prerequisites
+## ✨ Key Features
 
-Before running the application, ensure you have the following installed:
-- [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/)
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [Python](https://www.python.org/) (v3.9+ recommended)
+- **🚀 Automated Security Pipelines:** Orchestrate SAST (SonarQube) and DAST (OWASP ZAP) scans automatically on every push.
+- **🤖 AI-Powered Threat Detection:** Integrated Python ML Service for predicting vulnerability impact and anomaly detection.
+- **📊 Unified Security Dashboard:** Real-time visualization of security posture, pipeline health, and compliance metrics.
+- **🔐 Secure Authentication:** Robust JWT-based auth system with HTTP-only refresh tokens and role-based access control (RBAC).
+- **🔔 Intelligent Alerting:** Multi-channel notifications via Slack and Email for critical security findings.
+- **📜 Immutable Audit Logs:** Compliance-ready tracking of every action taken within the platform.
+- **⚓ GitHub Integration:** Webhook support for seamless synchronization with your source control.
 
-## Getting Started
+---
 
-### 1. Clone the repository
-
-```bash
-git clone <repository_url>
-cd DevSecOps_Plateforme
-```
-
-### 2. Environment Variables
-
-You need to set up `.env` files for the services. Look for sample `.env` files in the directories. Key configurations include:
-
-**Backend (`backend/.env`):**
-- `MONGO_URI`: MongoDB connection string.
-- `JWT_SECRET`, `JWT_REFRESH_SECRET`: Secrets for JWT authentication.
-- `SONARQUBE_URL`, `SONARQUBE_TOKEN`: Connection details for SonarQube.
-- `ZAP_URL`, `ZAP_API_KEY`: Connection details for OWASP ZAP.
-- `SLACK_WEBHOOK_URL`: Slack webhook for notifications.
-- `SMTP_*`: Settings for email notifications.
-- `GITHUB_WEBHOOK_SECRET`: Secret for securing GitHub webhooks.
-
-### 3. Running with Docker Compose
-
-You can launch the entire stack using Docker Compose:
-
-```bash
-# Start all core services in detached mode
-docker-compose up -d
-```
-
-> **Note:** SonarQube and OWASP ZAP are configured not to restart automatically to save resources. You can run them manually when needed:
-> ```bash
-> docker-compose up -d sonarqube zap
-> ```
-
-## Services and Ports
-
-When running locally, the services are mapped to the following ports:
-
-| Service | Port | Description |
-|---|---|---|
-| **Nginx** | `80` | Main entry point routing to frontend/backend |
-| **Frontend** | `5173` | React development server (if run directly) |
-| **Backend** | `4000` | Node.js REST API |
-| **ML Service** | `5001` | Flask API for Machine Learning |
-| **SonarQube** | `9000` | Code quality and SAST dashboard |
-| **OWASP ZAP** | `8090` | DAST API / proxy |
-
-## Development Guide
-
-If you wish to run services individually for development without Docker:
+## 🛠️ Tech Stack
 
 ### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- **Framework:** React 18 (Vite)
+- **Styling:** Tailwind CSS + Vanilla CSS (Glassmorphism UI)
+- **State/Hooks:** Custom Context API + Hooks
+- **Icons:** Lucide-React
+- **Charts:** Recharts
 
 ### Backend
-```bash
-cd backend
-npm install
-npm run dev
-```
+- **Runtime:** Node.js (Express)
+- **Database:** MongoDB (Mongoose)
+- **Security:** Helmet, Rate-limiting, CORS, JWT
+- **Orchestration:** Child Process management for security tool CLI interaction
 
 ### ML Service
-```bash
-cd ml-service
-python -m venv .venv
-# Activate the environment
-# Windows: .venv\Scripts\activate
-# Linux/Mac: source .venv/bin/activate
-pip install -r requirements.txt
-python app.py # Or using flask run
+- **Language:** Python 3.10
+- **Framework:** Flask
+- **Intelligence:** Scikit-Learn for vulnerability classification
+
+### Infrastructure
+- **Proxy:** Nginx (Reverse proxy & Static serving)
+- **Containerization:** Docker & Docker Compose
+- **Tools:** SonarQube, OWASP ZAP
+
+---
+
+## 📐 Architecture
+
+The platform follows a microservices architecture coordinated via a centralized Nginx Gateway.
+
+```mermaid
+graph TD
+    User((User)) -->|HTTPS| Nginx{Nginx Gateway}
+    Nginx -->|Port 5173| Frontend[React SPA]
+    Nginx -->|Port 4000| Backend[Express API]
+    Backend -->|Internal| MongoDB[(MongoDB)]
+    Backend -->|Port 5001| ML[ML Service]
+    Backend -->|Orchestration| Sonar[SonarQube]
+    Backend -->|Orchestration| ZAP[OWASP ZAP]
 ```
 
-## Features
-- **Dashboard:** Interactive dashboard with data visualization using Recharts.
-- **Pipeline Management:** Monitor security analysis pipelines from code push to deployment.
-- **Vulnerability Scanning:** Automated SAST (SonarQube) and DAST (ZAP) integration.
-- **AI-Powered Insights:** ML Service integration for intelligent security analytics.
-- **Alerting & Notifications:** Slack and Email integrations for real-time alerts.
+---
 
-## License
-MIT License
+## 🚀 Quick Start
+
+### Prerequisites
+- Docker & Docker Compose
+- A MongoDB Atlas URI (or local MongoDB)
+
+### 1. Clone & Environment
+```bash
+git clone https://github.com/your-repo/devsecops-platform.git
+cd devsecops-platform
+```
+
+Copy the `.env.example` to `.env` in the `backend/` folder and fill in your credentials.
+
+### 2. Run with Docker (Recommended)
+Launch the entire ecosystem with one command:
+```bash
+docker-compose up -d
+```
+The platform will be available at **`http://localhost`**.
+
+### 3. Manual Development Setup
+If you prefer running services individually:
+
+| Service | Commands |
+| :--- | :--- |
+| **Backend** | `cd backend && npm install && npm run dev` |
+| **Frontend** | `cd frontend && npm install && npm run dev` |
+| **ML Service** | `cd ml-service && pip install -r requirements.txt && python app.py` |
+
+---
+
+## 🛡️ Security Roadmap
+
+- [ ] **Phase 1:** SAST/DAST Integration (Completed)
+- [ ] **Phase 2:** ML Vulnerability Prediction (Current)
+- [ ] **Phase 3:** Kubernetes Operator for Dynamic Scans (Planned)
+- [ ] **Phase 4:** Automatic Patch Generation using LLMs (Future)
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  Built with ❤️ by Oussama SAIDI
+</p>

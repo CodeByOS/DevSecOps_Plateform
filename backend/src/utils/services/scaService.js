@@ -1,10 +1,11 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 //* Run OWASP Dependency Check in Docker
 const runSca = async (codePath, pipelineId) => {
-    const reportDir = `/tmp/secops-reports/${pipelineId}`;
+    const reportDir = path.join(os.tmpdir(), 'secops-reports', pipelineId);
     fs.mkdirSync(reportDir, { recursive: true });
 
     console.log(`  [SCA] Running Dependency Check on ${codePath}`);

@@ -28,13 +28,21 @@ const githubWebhook = async (req, res) => {
             return;
         }
 
-        //* Step 3: Find the project by repoUrl
+        //* Step 3: Find the project 
+        // We prefer projectId from query string (if provided by the frontend)
+        // Fallback to searching by repoUrl from the GitHub payload
+        const { projectId: queryProjectId } = req.query;
         const repoUrl = req.body?.repository?.clone_url || req.body?.repository?.html_url;
-        if (!repoUrl) return;
+        
+        let project;
+        if (queryProjectId) {
+            project = await Project.findById(queryProjectId);
+        } else if (repoUrl) {
+            project = await Project.findOne({ repoUrl });
+        }
 
-        const project = await Project.findOne({ repoUrl });
         if (!project) {
-            console.warn(`⚠️  No project found for repo: ${repoUrl}`);
+            console.warn(`⚠️  No project found for: ${queryProjectId || repoUrl}`);
             return;
         }
 
