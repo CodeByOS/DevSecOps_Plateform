@@ -29,6 +29,7 @@ const cloneRepo = (repoUrl, pipelineId, branch = 'main') => {
             '--depth', '1',
             '--single-branch',
             '--branch', branch,
+            '--', // Security: ensure everything after this is treated as a positional argument (repo URL and path)
             repoUrl,
             codePath,
         ];

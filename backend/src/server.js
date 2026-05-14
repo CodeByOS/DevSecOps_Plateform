@@ -36,17 +36,23 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+//* Body parsing (except for webhooks which need raw body)
+app.use(cookieParser()); // Needed to read the refresh token cookie
+
 //* Body parsing
+// We place the webhook routes BEFORE the global express.json() because
+// they need the raw buffer for HMAC verification.
+app.use('/api/webhooks', webhookRoutes);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser()); // Needed to read the refresh token cookie
 
 //* Request logging (dev only)
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-//* Health check (no auth needed)
+//* Health check & Root API
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -55,16 +61,23 @@ app.get('/health', (_req, res) => {
   });
 });
 
+app.get('/api', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'SecOps Platform API is online',
+    version: '1.0.0'
+  });
+});
+
 //! API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
-app.use('/api/webhooks', webhookRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/ml', mlRoutes);
 
-//* Pipeline routes are nested under projects AND accessible standalone
-// /api/projects/:projectId/pipelines  -> list pipelines for a project
-// /api/pipelines/:id                  -> get/override a single pipeline
+//* Pipeline routes registration
+// Handle nested: /api/projects/:projectId/pipelines
+// Handle standalone: /api/pipelines/:id
 app.use('/api/projects/:projectId/pipelines', pipelineRoutes);
 app.use('/api/pipelines', pipelineRoutes);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AuthContext from './AuthContext';
-import { getMe, login as apiLogin, logout as apiLogout } from '../api/auth';
+import { getMe, login as apiLogin, logout as apiLogout, register as apiRegister } from '../api/auth';
 
 // The backend returns { id, name, email, role } (not _id).
 // Normalize to always expose _id so all components work consistently.
@@ -32,6 +32,15 @@ const AuthProvider = ({ children }) => {
     return normalizedUser;
   }, []);
 
+  // ── Register ───────────────────────────────────────────────────────
+  const register = useCallback(async (name, email, password) => {
+    const { data } = await apiRegister({ name, email, password });
+    localStorage.setItem('accessToken', data.accessToken);
+    const normalizedUser = normalizeUser(data.user);
+    setUser(normalizedUser);
+    return normalizedUser;
+  }, []);
+
   // ── Logout ─────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try { await apiLogout(); } catch { /* ignore */ }
@@ -39,7 +48,7 @@ const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
-  const value = { user, loading, login, logout, isAdmin: user?.role === 'admin' };
+  const value = { user, loading, login, register, logout, isAdmin: user?.role === 'admin' };
 
   return (
     <AuthContext.Provider value={value}>
