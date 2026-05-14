@@ -1,5 +1,6 @@
 // Handles pipeline listing, detail view, and manual gate override
 
+const mongoose = require('mongoose');
 const Pipeline = require('../models/Pipeline');
 const ScanResult = require('../models/ScanResult');
 const Project = require('../models/Project');
@@ -11,15 +12,15 @@ const asyncHandler = require('../utils/asyncHandler');
 // @access Private
 const getPipelines = asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const page  = parseInt(req.query.page)  || 1;
+  const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-  const skip  = (page - 1) * limit;
+  const skip = (page - 1) * limit;
 
   const filter = { project: projectId };
 
-  if (req.query.status)   filter.status   = req.query.status;
+  if (req.query.status) filter.status = req.query.status;
   if (req.query.decision) filter.decision = req.query.decision;
-  if (req.query.branch)   filter.branch   = { $regex: req.query.branch, $options: 'i' };
+  if (req.query.branch) filter.branch = { $regex: req.query.branch, $options: 'i' };
 
   const total = await Pipeline.countDocuments(filter);
 
@@ -79,16 +80,16 @@ const overridePipeline = asyncHandler(async (req, res) => {
   }
 
   // Update the pipeline decision to override
-  pipeline.status       = 'completed';
-  pipeline.decision     = 'override';
-  pipeline.overrideBy   = req.user._id;
+  pipeline.status = 'completed';
+  pipeline.decision = 'override';
+  pipeline.overrideBy = req.user._id;
   pipeline.overrideReason = reason;
   await pipeline.save();
 
   // Always log overrides in the audit trail
   await AuditLog.log({
-    user:    req.user._id,
-    action:  'GATE_OVERRIDE',
+    user: req.user._id,
+    action: 'GATE_OVERRIDE',
     project: pipeline.project,
     details: { pipelineId: pipeline._id, score: pipeline.score, reason },
     ipAddress: req.ip,
@@ -97,8 +98,8 @@ const overridePipeline = asyncHandler(async (req, res) => {
   res.json({ success: true, data: pipeline });
 });
 
-//* GET /api/projects/:projectId/pipelines/stats 
-//* OR  /api/pipelines/stats
+//* GET /api/projects/:projectId/pipelines/stats
+//* OR  GET /api/pipelines/stats  (global — no projectId)
 // @desc  Get pipeline statistics for the dashboard
 // @access Private
 const getPipelineStats = asyncHandler(async (req, res) => {
@@ -106,7 +107,10 @@ const getPipelineStats = asyncHandler(async (req, res) => {
   const match = {};
 
   if (projectId) {
-    match.project = require('mongoose').Types.ObjectId.createFromHexString(projectId);
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return res.status(400).json({ success: false, message: 'Invalid project ID' });
+    }
+    match.project = new mongoose.Types.ObjectId(projectId);
   }
 
   const [total, blocked, completed, avgScoreResult] = await Promise.all([
@@ -128,7 +132,7 @@ const getPipelineStats = asyncHandler(async (req, res) => {
     .limit(7)
     .select('score status decision createdAt branch');
 
-  // Recently blocked pipelines (for global dashboard)
+  // Recently blocked pipelines (for global dashboard only)
   let recentlyBlocked = [];
   if (!projectId) {
     recentlyBlocked = await Pipeline.find({ status: 'blocked' })

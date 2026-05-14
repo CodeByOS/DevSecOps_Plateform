@@ -96,7 +96,7 @@ const PipelineDetailPage = () => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-           <Link to={`/projects/${pipeline.project?._id}`} style={{ background: 'var(--bg-elevated)', padding: 8, borderRadius: 8, color: 'var(--text-muted)' }}>
+          <Link to={`/projects/${pipeline.project?._id}`} style={{ background: 'var(--bg-elevated)', padding: 8, borderRadius: 8, color: 'var(--text-muted)' }}>
             <ChevronLeft size={20} />
           </Link>
           <div>
@@ -189,8 +189,8 @@ const PipelineDetailPage = () => {
             {timelineSteps.map((step, idx) => (
               <div key={step.name} style={{ display: 'flex', gap: 16 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24 }}>
-                  <div style={{ 
-                    width: 12, height: 12, borderRadius: '50%', 
+                  <div style={{
+                    width: 12, height: 12, borderRadius: '50%',
                     background: step.status === 'completed' ? 'var(--green)' : step.status === 'running' ? 'var(--blue)' : step.status === 'failed' ? 'var(--red)' : 'var(--bg-elevated)',
                     border: '2px solid var(--border)',
                     marginTop: 4,
@@ -254,7 +254,7 @@ const PipelineDetailPage = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-muted)' }}>ML Prob</span>
-                  <span style={{ color: 'var(--blue)', fontWeight: 600 }}>{(scan?.mlScore?.probability * 100).toFixed(0)}%</span>
+                  <span style={{ color: 'var(--blue)', fontWeight: 600 }}>{((scan?.mlScore?.probability ?? 0) * 100).toFixed(0)}%</span>
                 </div>
               </div>
             </div>
