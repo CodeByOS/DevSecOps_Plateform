@@ -34,6 +34,7 @@ services:
     environment:
       NODE_ENV: production
       NODE_OPTIONS: "--max-old-space-size=256"
+      CLIENT_URL: "http://localhost"
 
     depends_on:
       ml-service:
@@ -110,7 +111,7 @@ services:
       JAVA_OPTS: "-Xmx512m"
 
     command: >
-      zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=false -config api.key=vnfrd3l2p6q44f9nt9agcbkifc
+      zap.sh -daemon -host 0.0.0.0 -port 8090 -config api.disablekey=false -config api.key=${ZAP_API_KEY}
 
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8090/" ]
@@ -128,7 +129,7 @@ volumes:
   sonarqube_extensions:
   sonarqube_logs:
 
-# ---------------- NETWORK ----------------
+    # ---------------- NETWORK ----------------
 networks:
   secops-network:
     driver: bridge
