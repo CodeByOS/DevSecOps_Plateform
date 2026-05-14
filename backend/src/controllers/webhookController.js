@@ -16,9 +16,9 @@ const githubWebhook = async (req, res) => {
     res.status(200).json({ success: true, message: 'Webhook received' });
 
     try {
-    //* Step 2: Verify the GitHub signature
+        //* Step 2: Verify the GitHub signature
         const signature = req.headers['x-hub-signature-256'];
-        const event     = req.headers['x-github-event'];
+        const event = req.headers['x-github-event'];
 
         // We only care about push events
         if (event !== 'push') return;
@@ -28,7 +28,7 @@ const githubWebhook = async (req, res) => {
             return;
         }
 
-    //* Step 3: Find the project by repoUrl
+        //* Step 3: Find the project by repoUrl
         const repoUrl = req.body?.repository?.clone_url || req.body?.repository?.html_url;
         if (!repoUrl) return;
 
@@ -38,12 +38,27 @@ const githubWebhook = async (req, res) => {
             return;
         }
 
-    //* Step 4: Validate HMAC signature with project's webhook secret ─
-        const rawBody  = JSON.stringify(req.body);
+        //* Step 4: Validate HMAC signature with project's webhook secret
+        // CRITICAL FIX: Use req.rawBody (the original buffer stored by the verify callback
+        // in webhookRoutes.js) instead of re-serializing req.body.
+        // JSON.stringify(req.body) can reorder keys or alter formatting, producing a
+        // different string than what GitHub actually sent, causing all HMAC checks to fail.
+        const rawBody = req.rawBody;
+        if (!rawBody) {
+            console.warn('⚠️  req.rawBody is missing — verify callback may not have run');
+            return;
+        }
+
         const expected = `sha256=${crypto
             .createHmac('sha256', project.webhookSecret)
             .update(rawBody)
             .digest('hex')}`;
+
+        // Ensure both buffers are the same length before timingSafeEqual to avoid crashes
+        if (signature.length !== expected.length) {
+            console.warn('⚠️  Invalid webhook signature (length mismatch) — request rejected');
+            return;
+        }
 
         // Use timingSafeEqual to prevent timing attacks
         const isValid = crypto.timingSafeEqual(
@@ -56,28 +71,28 @@ const githubWebhook = async (req, res) => {
             return;
         }
 
-    //* Step 5: Extract commit info from payload 
-        const commitSha    = req.body.after;
-        const branch       = req.body.ref?.replace('refs/heads/', '') || 'unknown';
-        const commitMsg    = req.body.head_commit?.message || '';
-        const author       = req.body.head_commit?.author?.name || '';
+        //* Step 5: Extract commit info from payload 
+        const commitSha = req.body.after;
+        const branch = req.body.ref?.replace('refs/heads/', '') || 'unknown';
+        const commitMsg = req.body.head_commit?.message || '';
+        const author = req.body.head_commit?.author?.name || '';
 
         // Skip pipelines for deleted branches (after = 000...000)
         if (!commitSha || commitSha === '0000000000000000000000000000000000000000') return;
 
-    //* Step 6: Create pipeline document 
+        //* Step 6: Create pipeline document 
         const pipeline = await Pipeline.create({
-            project:       project._id,
+            project: project._id,
             commitSha,
             branch,
             commitMessage: commitMsg,
             author,
-            status:        'pending',
+            status: 'pending',
         });
 
         console.log(`\n Webhook received — Project: ${project.name} | Branch: ${branch} | Commit: ${commitSha.slice(0, 7)}`);
 
-    //* Step 7: Run the pipeline asynchronously (non-blocking) 
+        //* Step 7: Run the pipeline asynchronously (non-blocking) 
         // setImmediate ensures the response is sent before we start processing
         setImmediate(() => runPipeline(pipeline._id, project));
 
