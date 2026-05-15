@@ -1,28 +1,17 @@
 import { motion } from 'framer-motion';
 
-const Skeleton = ({ width, height, borderRadius = 12, style }) => (
+const Skeleton = ({ className = '' }) => (
   <motion.div
-    initial={{ opacity: 0.5 }}
-    animate={{ opacity: [0.5, 0.8, 0.5] }}
-    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-    style={{
-      width: width ?? '100%',
-      height: height ?? 20,
-      borderRadius,
-      background: 'linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%)',
-      backgroundSize: '200% 100%',
-      ...style
-    }}
+    initial={{ opacity: 0.3 }}
+    animate={{ opacity: [0.3, 0.5, 0.3] }}
+    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+    className={`bg-bg-elevated rounded-xl relative overflow-hidden ${className}`}
   >
     <motion.div
       initial={{ x: '-100%' }}
       animate={{ x: '100%' }}
       transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-      style={{
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent)',
-      }}
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"
     />
   </motion.div>
 );

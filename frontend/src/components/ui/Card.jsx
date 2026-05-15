@@ -1,41 +1,32 @@
 import { motion } from 'framer-motion';
 
-const Card = ({ children, style, hover = true, delay = 0, ...props }) => (
+const Card = ({ children, className = '', hover = true, delay = 0, ...props }) => (
   <motion.div
-    initial={{ opacity: 0, y: 15 }}
+    initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4, delay, ease: [0.23, 1, 0.32, 1] }}
+    transition={{ duration: 0.5, delay, ease: [0.23, 1, 0.32, 1] }}
     whileHover={hover ? { 
       y: -4, 
-      borderColor: 'var(--blue)', 
-      boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(79, 163, 255, 0.1)' 
+      transition: { duration: 0.2 }
     } : {}}
-    style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border)',
-      borderRadius: 16,
-      padding: 24,
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
-      position: 'relative',
-      overflow: 'hidden',
-      ...style,
-    }}
+    className={`
+      relative overflow-hidden bg-bg-card border border-border-main rounded-2xl p-6
+      shadow-lg shadow-black/20 transition-colors duration-300
+      ${hover ? 'hover:border-brand-blue/30 hover:shadow-brand-blue/5' : ''}
+      ${className}
+    `}
     {...props}
   >
-    {/* Decorative sheen effect */}
+    {/* Subtle inner glow for depth */}
+    <div className="absolute inset-px rounded-[15px] border border-white/5 pointer-events-none" />
+    
+    {/* Decorative sheen effect on hover */}
     {hover && (
       <div 
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)',
-          pointerEvents: 'none'
-        }}
+        className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none"
       />
     )}
+    
     {children}
   </motion.div>
 );

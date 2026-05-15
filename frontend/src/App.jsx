@@ -24,8 +24,11 @@ const NotFoundPage      = lazy(() => import('./pages/NotFoundPage'));
 
 // Shared loading fallback
 const PageLoader = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 200 }}>
-    <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading…</div>
+  <div className="flex items-center justify-center h-full min-h-[200px]">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-8 h-8 border-4 border-brand-blue border-t-transparent rounded-full animate-spin" />
+      <div className="text-text-muted text-xs font-black uppercase tracking-[0.2em] animate-pulse">Initializing...</div>
+    </div>
   </div>
 );
 
@@ -33,8 +36,11 @@ const PageLoader = () => (
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-base)' }}>
-      <div style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading…</div>
+    <div className="flex items-center justify-center h-screen bg-bg-base">
+       <div className="flex flex-col items-center gap-4">
+        <div className="w-10 h-10 border-4 border-brand-purple border-t-transparent rounded-full animate-spin" />
+        <div className="text-text-muted text-xs font-black uppercase tracking-[0.2em] animate-pulse">Securing Session...</div>
+      </div>
     </div>
   );
   return user ? <Outlet /> : <Navigate to="/login" replace />;

@@ -1,13 +1,14 @@
 import { useLocation } from 'react-router-dom';
-import { Bell, Menu, Zap } from 'lucide-react';
+import { Bell, Menu, Zap, Search, Command } from 'lucide-react';
+import { motion } from 'framer-motion';
 import useAuth from '../../hooks/useAuth';
 
 const pageTitles = {
-  '/dashboard':   'Dashboard',
-  '/projects':    'Projects',
-  '/audit':       'Audit Log',
-  '/ml':          'ML Service',
-  '/settings':    'Settings',
+  '/dashboard':   'Command Center',
+  '/projects':    'Repositories',
+  '/audit':       'Security Ledger',
+  '/ml':          'AI Intelligence',
+  '/settings':    'System Config',
 };
 
 const Header = ({ onMenuClick }) => {
@@ -16,102 +17,63 @@ const Header = ({ onMenuClick }) => {
 
   const title = Object.entries(pageTitles).find(([path]) =>
     pathname === path || pathname.startsWith(path + '/')
-  )?.[1] ?? 'SecOps';
+  )?.[1] ?? 'SecOps Platform';
 
   return (
-    <header style={{
-      height: 64,
-      background: 'var(--bg-card)',
-      borderBottom: '1px solid var(--border)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 24px',
-      flexShrink: 0,
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {/* Hamburger for mobile */}
+    <header className="h-16 bg-bg-card border-b border-border-main flex items-center justify-between px-6 shrink-0 z-30">
+      <div className="flex items-center gap-6">
         <button
           onClick={onMenuClick}
-          className="show-on-mobile"
-          style={{
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            flexShrink: 0,
-          }}
+          className="md:hidden bg-bg-elevated border border-border-main text-text-muted p-2 rounded-xl hover:text-text-primary transition-colors shadow-lg shadow-black/10"
           aria-label="Toggle sidebar"
         >
-          <Menu size={18} />
+          <Menu size={20} />
         </button>
 
-        <h1 style={{
-          margin: 0,
-          fontSize: 20,
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-        }}>
-          <Zap size={20} color="var(--blue)" />
-          {title}
-        </h1>
+        <div className="flex items-center gap-3">
+          <div className="p-1.5 bg-brand-blue/10 rounded-lg hidden sm:block">
+            <Zap size={16} className="text-brand-blue" fill="currentColor" />
+          </div>
+          <h1 className="text-sm font-black text-text-primary uppercase tracking-[0.15em] border-l border-border-main pl-4 hidden sm:block">
+            {title}
+          </h1>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button style={{
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--text-muted)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '6px',
-          borderRadius: 8,
-          transition: 'all 0.2s ease',
-        }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--blue)'; e.currentTarget.style.background = 'var(--blue-dim)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
-          title="Notifications"
-        >
+      {/* Global Search Bar (Visual only for now) */}
+      <div className="hidden lg:flex flex-1 max-w-md mx-8">
+        <div className="w-full relative group">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-blue transition-colors" />
+          <input 
+            type="text" 
+            placeholder="Quick search telemetry..." 
+            className="w-full bg-bg-elevated border border-border-main rounded-xl pl-11 pr-12 py-2 text-xs font-bold text-text-primary outline-none focus:border-brand-blue/30 focus:bg-bg-hover transition-all"
+          />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 px-1.5 py-0.5 bg-bg-card rounded border border-border-main text-[9px] font-black text-text-muted">
+            <Command size={10} /> K
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <button className="relative p-2.5 bg-bg-elevated border border-border-main rounded-xl text-text-muted hover:text-brand-blue hover:border-brand-blue/30 transition-all group shadow-lg shadow-black/5">
           <Bell size={18} />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-brand-red rounded-full border-2 border-bg-elevated group-hover:scale-125 transition-transform" />
         </button>
 
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '6px 12px',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 8,
-        }}>
-          <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            background: 'linear-gradient(135deg, var(--blue), var(--purple))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 12,
-            fontWeight: 700,
-            color: '#fff',
-            flexShrink: 0,
-          }}>
+        <div className="h-10 w-px bg-border-main mx-1 hidden sm:block" />
+
+        <div className="flex items-center gap-3 pl-2">
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-black text-text-primary leading-none mb-1">{user?.name}</p>
+            <p className="text-[9px] font-bold text-text-muted uppercase tracking-tighter uppercase">{user?.role} ACCESS</p>
+          </div>
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-blue to-brand-purple flex items-center justify-center text-white font-black text-sm shadow-lg shadow-brand-blue/20 cursor-pointer"
+          >
             {user?.name?.[0]?.toUpperCase() ?? '?'}
-          </div>
-          <div className="hide-on-mobile" style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {user?.email}
-          </div>
+          </motion.div>
         </div>
       </div>
     </header>

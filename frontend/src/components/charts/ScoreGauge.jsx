@@ -1,20 +1,22 @@
-const ScoreGauge = ({ score = 0, size = 140 }) => {
+const ScoreGauge = ({ score = 0 }) => {
   const radius = 56;
-  const center = 70;
   const circumference = Math.PI * radius;
   const clamped = Math.max(0, Math.min(100, Number(score) || 0));
   const offset = circumference - (clamped / 100) * circumference;
 
-  const color = clamped >= 80 ? 'var(--red)' : clamped >= 50 ? 'var(--orange)' : 'var(--green)';
+  const color = clamped >= 80 ? '#f17a5f' : clamped >= 50 ? '#e8a844' : '#42c77f';
 
   return (
-    <svg width={size} height={size * 0.65} viewBox="0 0 140 90">
+    <svg className="w-full h-full" viewBox="0 0 140 90">
+      {/* Background Track */}
       <path
         d="M14 70 A56 56 0 0 1 126 70"
-        stroke="var(--border)"
+        stroke="#252f3d"
         strokeWidth="10"
         fill="none"
+        strokeLinecap="round"
       />
+      {/* Active Track */}
       <path
         d="M14 70 A56 56 0 0 1 126 70"
         stroke={color}
@@ -22,13 +24,19 @@ const ScoreGauge = ({ score = 0, size = 140 }) => {
         fill="none"
         strokeDasharray={circumference}
         strokeDashoffset={offset}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dashoffset 1s ease-out, stroke 0.3s ease' }}
       />
-      <text x="70" y="68" textAnchor="middle" fill="var(--text-primary)" style={{ fontSize: 18, fontWeight: 700 }}>
-        {clamped}
-      </text>
-      <text x="70" y="84" textAnchor="middle" fill="var(--text-muted)" style={{ fontSize: 10 }}>
-        Risk score
-      </text>
+      {/* Inner Glow shadow (visual only) */}
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
     </svg>
   );
 };

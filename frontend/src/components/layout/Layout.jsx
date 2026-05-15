@@ -9,23 +9,26 @@ const Layout = () => {
   const location = useLocation();
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
+    <div className="flex h-screen overflow-hidden bg-bg-base font-sans selection:bg-brand-blue/30">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
-        <main style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '24px',
-        }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+        
+        <main className="flex-1 overflow-y-auto custom-scrollbar relative">
+          {/* Subtle background pattern */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#4fa3ff_1px,transparent_1px)] [background-size:40px_40px]" />
+          </div>
+
+          <div className="max-w-[1600px] mx-auto w-full px-6 py-8 relative z-10">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
               >
                 <Outlet />
               </motion.div>

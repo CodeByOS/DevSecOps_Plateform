@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, AlertCircle, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Shield, Eye, EyeOff, AlertCircle, User, Mail, Lock, ArrowRight, RefreshCw } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 const RegisterPage = () => {
@@ -15,246 +16,139 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    setError(''); setLoading(true);
+    if (form.password.length < 6) { 
+      setError('SECURITY POLICY: Password must be at least 6 characters.'); 
+      return; 
+    }
+    setError(''); 
+    setLoading(true);
     try {
       await register(form.name, form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message ?? 'Registration failed. Please try again.');
+      setError(err.response?.data?.message ?? 'REGISTRATION FAILURE: Access denied or system error.');
     } finally {
       setLoading(false);
     }
   };
 
-  const inputStyle = {
-    width: '100%', 
-    padding: '11px 14px', 
-    borderRadius: 10,
-    border: '1px solid var(--border)', 
-    background: 'var(--bg-elevated)',
-    color: 'var(--text-primary)', 
-    fontSize: 14, 
-    outline: 'none', 
-    boxSizing: 'border-box',
-    transition: 'all 0.2s ease',
-    fontFamily: 'inherit',
-  };
-
   return (
-    <div style={{
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'var(--bg-base)', 
-      padding: 24,
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <div style={{ 
-        position: 'fixed', 
-        top: '-20%', 
-        right: '-10%', 
-        width: 600, 
-        height: 600, 
-        borderRadius: '50%', 
-        background: 'radial-gradient(circle, rgba(79, 163, 255, 0.08) 0%, transparent 70%)', 
-        pointerEvents: 'none' 
-      }} />
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '-10%', 
-        left: '-5%', 
-        width: 500, 
-        height: 500, 
-        borderRadius: '50%', 
-        background: 'radial-gradient(circle, rgba(197, 163, 255, 0.06) 0%, transparent 70%)', 
-        pointerEvents: 'none' 
-      }} />
+    <div className="min-h-screen flex items-center justify-center bg-bg-base p-6 relative overflow-hidden font-sans">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-brand-blue/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-5%] left-[-5%] w-[500px] h-[500px] bg-brand-purple/5 rounded-full blur-[100px]" />
+      </div>
 
-      <div style={{
-        width: '100%', 
-        maxWidth: 420,
-        background: 'var(--bg-card)', 
-        border: '1px solid var(--border)',
-        borderRadius: 16, 
-        padding: 40,
-        boxShadow: '0 16px 48px rgba(0, 0, 0, 0.3)',
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-            <div style={{ 
-              width: 56, 
-              height: 56, 
-              borderRadius: 14, 
-              background: 'linear-gradient(135deg, var(--blue), var(--purple))', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(79, 163, 255, 0.2)',
-            }}>
-              <Shield size={28} color="#fff" strokeWidth={2} />
-            </div>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                <Zap size={20} color="var(--blue)" />
-                SecOps Platform
-              </div>
-              <p style={{ margin: '6px 0 0', color: 'var(--text-muted)', fontSize: 13, fontWeight: 500 }}>
-                Create your account
-              </p>
-            </div>
-          </Link>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[420px] bg-bg-card border border-border-main rounded-3xl p-10 shadow-2xl relative z-10 overflow-hidden"
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-purple via-brand-blue to-brand-purple" />
+        
+        <div className="text-center mb-10">
+          <motion.div 
+            whileHover={{ rotate: -5, scale: 1.05 }}
+            className="inline-flex w-16 h-16 bg-gradient-to-br from-brand-purple to-brand-blue rounded-2xl items-center justify-center shadow-xl shadow-brand-purple/20 mb-6"
+          >
+            <Shield size={32} className="text-white" strokeWidth={2.5} />
+          </motion.div>
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">Access Provisioning</h1>
+          <p className="text-text-muted text-xs font-bold uppercase tracking-[0.2em] mt-2">Create Security Operative Identity</p>
         </div>
 
         {error && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'flex-start', 
-            gap: 10, 
-            padding: '12px 14px', 
-            borderRadius: 10, 
-            background: 'var(--red-dim)', 
-            border: '1px solid var(--red)', 
-            color: 'var(--red)', 
-            fontSize: 13, 
-            marginBottom: 24 
-          }}>
-            <AlertCircle size={16} style={{ marginTop: 2, flexShrink: 0 }} /> 
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 p-4 bg-brand-red/10 border border-brand-red/30 text-brand-red rounded-xl text-[10px] font-black uppercase tracking-widest mb-8 shadow-lg shadow-brand-red/5"
+          >
+            <AlertCircle size={16} className="shrink-0" /> 
             <span>{error}</span>
-          </div>
+          </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Name */}
-          <div>
-            <label htmlFor="name" style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Full Name</label>
-            <input 
-              id="name" 
-              type="text" 
-              placeholder="Jane Smith" 
-              value={form.name} 
-              onChange={set('name')} 
-              required 
-              style={inputStyle}
-              onFocus={e => {
-                e.target.style.borderColor = 'var(--blue)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(79, 163, 255, 0.1)';
-              }} 
-              onBlur={e => {
-                e.target.style.borderColor = 'var(--border)';
-                e.target.style.boxShadow = 'none';
-              }} 
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Personnel Name</label>
+            <div className="relative group">
+              <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-purple transition-colors" />
+              <input
+                type="text" 
+                placeholder="Jane operative" 
+                value={form.name} 
+                onChange={set('name')} 
+                required
+                className="w-full bg-bg-elevated border border-border-main rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-text-primary outline-none focus:border-brand-purple/50 transition-all shadow-inner"
+              />
+            </div>
           </div>
-          {/* Email */}
-          <div>
-            <label htmlFor="reg-email" style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email Address</label>
-            <input 
-              id="reg-email" 
-              type="email" 
-              placeholder="you@example.com" 
-              value={form.email} 
-              onChange={set('email')} 
-              required 
-              style={inputStyle}
-              onFocus={e => {
-                e.target.style.borderColor = 'var(--blue)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(79, 163, 255, 0.1)';
-              }} 
-              onBlur={e => {
-                e.target.style.borderColor = 'var(--border)';
-                e.target.style.boxShadow = 'none';
-              }} 
-            />
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Identity Vector (Email)</label>
+            <div className="relative group">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-purple transition-colors" />
+              <input
+                type="email" 
+                placeholder="jane@secops.io" 
+                value={form.email} 
+                onChange={set('email')} 
+                required
+                className="w-full bg-bg-elevated border border-border-main rounded-xl pl-12 pr-4 py-3.5 text-sm font-bold text-text-primary outline-none focus:border-brand-purple/50 transition-all shadow-inner"
+              />
+            </div>
           </div>
-          {/* Password */}
-          <div>
-            <label htmlFor="reg-password" style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <input 
-                id="reg-password" 
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Access Credential</label>
+            <div className="relative group">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-brand-purple transition-colors" />
+              <input
                 type={showPw ? 'text' : 'password'} 
-                placeholder="Min. 6 characters" 
+                placeholder="••••••••••••" 
                 value={form.password} 
                 onChange={set('password')} 
-                required 
-                style={{ ...inputStyle, paddingRight: 40 }}
-                onFocus={e => {
-                  e.target.style.borderColor = 'var(--blue)';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(79, 163, 255, 0.1)';
-                }} 
-                onBlur={e => {
-                  e.target.style.borderColor = 'var(--border)';
-                  e.target.style.boxShadow = 'none';
-                }} 
+                required
+                className="w-full bg-bg-elevated border border-border-main rounded-xl pl-12 pr-12 py-3.5 text-sm font-bold text-text-primary outline-none focus:border-brand-purple/50 transition-all shadow-inner"
               />
               <button 
                 type="button" 
-                onClick={() => setShowPw(p => !p)} 
-                style={{ 
-                  position: 'absolute', 
-                  right: 14, 
-                  top: '50%', 
-                  transform: 'translateY(-50%)', 
-                  background: 'none', 
-                  border: 'none', 
-                  cursor: 'pointer', 
-                  color: 'var(--text-muted)', 
-                  padding: 4,
-                  transition: 'color 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                onClick={() => setShowPw(!showPw)} 
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
               >
                 {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <button 
+          <motion.button 
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             type="submit" 
             disabled={loading} 
-            style={{
-              padding: '12px', 
-              borderRadius: 10, 
-              border: 'none', 
-              marginTop: 8,
-              background: loading ? 'var(--border)' : 'var(--blue)',
-              color: '#fff',
-              fontSize: 14, 
-              fontWeight: 700, 
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: loading ? 'none' : '0 4px 12px rgba(79, 163, 255, 0.3)',
-            }}
-            onMouseEnter={e => {
-              if (!loading) {
-                e.currentTarget.style.background = 'var(--blue-light)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(79, 163, 255, 0.4)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!loading) {
-                e.currentTarget.style.background = 'var(--blue)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(79, 163, 255, 0.3)';
-              }
-            }}
+            className="w-full py-4 bg-brand-purple text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-brand-purple/20 hover:shadow-brand-purple/40 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
           >
-            {loading ? 'Creating account…' : 'Create Account'}
-          </button>
+            {loading ? (
+              <RefreshCw size={18} className="animate-spin" />
+            ) : (
+              <>
+                PROVISION ACCOUNT <ArrowRight size={18} />
+              </>
+            )}
+          </motion.button>
         </form>
 
-        <p style={{ textAlign: 'center', marginTop: 28, fontSize: 13, color: 'var(--text-muted)' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--blue)', textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
-        </p>
-      </div>
+        <div className="mt-10 pt-8 border-t border-border-main text-center">
+          <p className="text-xs text-text-muted font-medium">
+            Already authorized?{' '}
+            <Link to="/login" className="text-brand-purple font-black hover:underline underline-offset-4 ml-1">
+              Secure Sign In
+            </Link>
+          </p>
+        </div>
+      </motion.div>
     </div>
   );
 };

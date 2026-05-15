@@ -1,32 +1,13 @@
 import { useState } from 'react';
-import { User, Lock, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  User, Lock, CheckCircle, AlertCircle, Save, 
+  Settings, Mail, Shield, UserCheck, Key, 
+  RefreshCw, Fingerprint
+} from 'lucide-react';
 import Card from '../components/ui/Card';
 import useAuth from '../hooks/useAuth';
 import client from '../api/client';
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px 14px',
-  borderRadius: 8,
-  border: '1px solid var(--border)',
-  background: 'var(--bg-elevated)',
-  color: 'var(--text-primary)',
-  fontSize: 13,
-  outline: 'none',
-  boxSizing: 'border-box',
-  fontFamily: 'inherit',
-  transition: 'border-color 0.2s',
-};
-
-const labelStyle = {
-  display: 'block',
-  fontSize: 12,
-  color: 'var(--text-muted)',
-  marginBottom: 6,
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.5px',
-};
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -49,14 +30,14 @@ const SettingsPage = () => {
     e.preventDefault();
     setProfileError('');
     setProfileSuccess(false);
-    if (!name.trim()) { setProfileError('Name cannot be empty.'); return; }
+    if (!name.trim()) { setProfileError('IDENTIFIER ERROR: Name vector cannot be null.'); return; }
     setProfileLoading(true);
     try {
       await client.put('/auth/profile', { name: name.trim() });
       setProfileSuccess(true);
       setTimeout(() => setProfileSuccess(false), 3000);
     } catch (err) {
-      setProfileError(err.response?.data?.message ?? 'Failed to update profile.');
+      setProfileError(err.response?.data?.message ?? 'UPDATE FAILURE: Service sync failed.');
     } finally {
       setProfileLoading(false);
     }
@@ -67,15 +48,15 @@ const SettingsPage = () => {
     setPwError('');
     setPwSuccess(false);
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPwError('All password fields are required.');
+      setPwError('FIELD ERROR: All authorization vectors required.');
       return;
     }
     if (newPassword.length < 6) {
-      setPwError('New password must be at least 6 characters.');
+      setPwError('SECURITY POLICY: Minimum entropy not met (6+ chars).');
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPwError('New passwords do not match.');
+      setPwError('MISMATCH: Confirmation vector does not align.');
       return;
     }
     setPwLoading(true);
@@ -87,125 +68,183 @@ const SettingsPage = () => {
       setConfirmPassword('');
       setTimeout(() => setPwSuccess(false), 3000);
     } catch (err) {
-      setPwError(err.response?.data?.message ?? 'Failed to change password.');
+      setPwError(err.response?.data?.message ?? 'REKEY FAILURE: Current authorization denied.');
     } finally {
       setPwLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 680 }}>
-      <div>
-        <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700 }}>Settings</h2>
-        <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 8 }}>
-          Manage your account and preferences
+    <div className="max-w-3xl space-y-8 pb-12">
+      {/* Header */}
+      <header className="space-y-2">
+        <div className="flex items-center gap-2 text-brand-blue font-bold text-xs uppercase tracking-widest">
+          <Settings size={14} />
+          System Configuration
         </div>
+        <h1 className="text-4xl font-black text-text-primary tracking-tight">Account Parameters</h1>
+        <p className="text-text-muted text-sm max-w-lg font-medium">
+          Manage personnel identification, authorization credentials, and security preferences.
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 gap-8">
+        {/* Profile Section */}
+        <Card className="relative overflow-hidden group">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="p-3 bg-gradient-to-br from-brand-blue to-brand-purple rounded-2xl shadow-lg shadow-brand-blue/20">
+              <User size={24} className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-text-primary tracking-tight uppercase tracking-tighter">Personnel Profile</h3>
+              <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">Public Identity Vector</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Assigned Email</label>
+              <div className="flex items-center gap-3 bg-bg-elevated/50 border border-border-main/50 rounded-xl px-4 py-3 text-sm font-bold text-text-muted cursor-not-allowed group-hover:border-border-main transition-colors shadow-inner">
+                <Mail size={16} className="opacity-40" />
+                {user?.email}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Access Level</label>
+              <div className="flex items-center gap-3 bg-bg-elevated/50 border border-border-main/50 rounded-xl px-4 py-3 text-sm font-bold text-text-muted cursor-not-allowed group-hover:border-border-main transition-colors shadow-inner capitalize">
+                <Shield size={16} className="opacity-40 text-brand-blue" />
+                {user?.role} Access
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleProfileSave} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Display Pseudonym</label>
+              <div className="relative group/input">
+                <UserCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within/input:text-brand-blue transition-colors" />
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Personnel Name"
+                  className="w-full bg-bg-card border border-border-main rounded-xl pl-12 pr-4 py-3 text-sm font-bold text-text-primary outline-none focus:border-brand-blue/50 transition-all shadow-inner"
+                />
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {profileError && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-brand-red/10 border border-brand-red/30 text-brand-red rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-brand-red/5"
+                >
+                  <AlertCircle size={16} />
+                  {profileError}
+                </motion.div>
+              )}
+              {profileSuccess && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-brand-green/10 border border-brand-green/30 text-brand-green rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-brand-green/5"
+                >
+                  <CheckCircle size={16} />
+                  IDENTITY PARAMETERS SYNCED SUCCESSFULLY
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex justify-end">
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit" 
+                disabled={profileLoading} 
+                className="flex items-center gap-2 px-8 py-3 bg-brand-blue text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:shadow-brand-blue/40 transition-all disabled:opacity-50"
+              >
+                {profileLoading ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                {profileLoading ? 'SYNCING...' : 'UPDATE IDENTITY'}
+              </motion.button>
+            </div>
+          </form>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 blur-[60px] rounded-full pointer-events-none" />
+        </Card>
+
+        {/* Password Section */}
+        <Card className="relative overflow-hidden">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="p-3 bg-gradient-to-br from-brand-orange to-brand-red rounded-2xl shadow-lg shadow-brand-orange/20">
+              <Key size={24} className="text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-text-primary tracking-tight uppercase tracking-tighter">Authorization Key</h3>
+              <p className="text-[10px] text-text-muted font-black uppercase tracking-widest">Entropy & Credential Management</p>
+            </div>
+          </div>
+
+          <form onSubmit={handlePasswordChange} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { label: 'Current Token', val: currentPassword, setter: setCurrentPassword, icon: Lock },
+                { label: 'New Vector', val: newPassword, setter: setNewPassword, icon: Fingerprint },
+                { label: 'Verify Vector', val: confirmPassword, setter: setConfirmPassword, icon: Fingerprint },
+              ].map(({ label, val, setter, icon: Icon }) => (
+                <div key={label} className="space-y-2">
+                  <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">{label}</label>
+                  <div className="relative group/input">
+                    <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within/input:text-brand-orange transition-colors" />
+                    <input 
+                      type="password" 
+                      value={val} 
+                      onChange={(e) => setter(e.target.value)} 
+                      placeholder="••••••••" 
+                      className="w-full bg-bg-card border border-border-main rounded-xl pl-12 pr-4 py-3 text-sm font-bold text-text-primary outline-none focus:border-brand-orange/50 transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <AnimatePresence>
+              {pwError && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-brand-red/10 border border-brand-red/30 text-brand-red rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-brand-red/5"
+                >
+                  <AlertCircle size={16} />
+                  {pwError}
+                </motion.div>
+              )}
+              {pwSuccess && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 bg-brand-green/10 border border-brand-green/30 text-brand-green rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-lg shadow-brand-green/5"
+                >
+                  <CheckCircle size={16} />
+                  AUTHORIZATION TOKEN RECALIBRATED SUCCESSFULLY
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex justify-end">
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit" 
+                disabled={pwLoading} 
+                className="flex items-center gap-2 px-8 py-3 bg-brand-orange text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/40 transition-all disabled:opacity-50"
+              >
+                {pwLoading ? <RefreshCw size={16} className="animate-spin" /> : <Lock size={16} />}
+                {pwLoading ? 'REKEYING...' : 'RECALIBRATE TOKEN'}
+              </motion.button>
+            </div>
+          </form>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-orange/5 blur-[60px] rounded-full pointer-events-none" />
+        </Card>
       </div>
-
-      {/* Profile Section */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--blue), var(--purple))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <User size={18} color="#fff" />
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Profile</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Update your display name</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-          <div>
-            <label style={labelStyle}>Email</label>
-            <div style={{ ...inputStyle, color: 'var(--text-muted)', cursor: 'default', border: '1px solid var(--border-subtle)' }}>
-              {user?.email}
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Role</label>
-            <div style={{ ...inputStyle, color: 'var(--text-muted)', cursor: 'default', border: '1px solid var(--border-subtle)', textTransform: 'capitalize' }}>
-              {user?.role}
-            </div>
-          </div>
-        </div>
-
-        <form onSubmit={handleProfileSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div>
-            <label style={labelStyle}>Display Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'var(--blue)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-            />
-          </div>
-
-          {profileError && (
-            <div style={{ background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', padding: '10px 14px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertCircle size={14} />{profileError}
-            </div>
-          )}
-          {profileSuccess && (
-            <div style={{ background: 'var(--green-dim)', border: '1px solid var(--green)', color: 'var(--green)', padding: '10px 14px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <CheckCircle size={14} />Profile updated successfully!
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="submit" disabled={profileLoading} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 10, border: 'none', background: profileLoading ? 'var(--border)' : 'var(--blue)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: profileLoading ? 'not-allowed' : 'pointer' }}>
-              <Save size={15} />{profileLoading ? 'Saving…' : 'Save Profile'}
-            </button>
-          </div>
-        </form>
-      </Card>
-
-      {/* Password Section */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--orange), var(--red))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Lock size={18} color="#fff" />
-          </div>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Change Password</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Must be at least 6 characters</div>
-          </div>
-        </div>
-
-        <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {[
-            { label: 'Current Password', val: currentPassword, setter: setCurrentPassword },
-            { label: 'New Password', val: newPassword, setter: setNewPassword },
-            { label: 'Confirm New Password', val: confirmPassword, setter: setConfirmPassword },
-          ].map(({ label, val, setter }) => (
-            <div key={label}>
-              <label style={labelStyle}>{label}</label>
-              <input type="password" value={val} onChange={(e) => setter(e.target.value)} placeholder="••••••••" style={inputStyle}
-                onFocus={e => e.target.style.borderColor = 'var(--orange)'}
-                onBlur={e => e.target.style.borderColor = 'var(--border)'}
-              />
-            </div>
-          ))}
-
-          {pwError && (
-            <div style={{ background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', padding: '10px 14px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <AlertCircle size={14} />{pwError}
-            </div>
-          )}
-          {pwSuccess && (
-            <div style={{ background: 'var(--green-dim)', border: '1px solid var(--green)', color: 'var(--green)', padding: '10px 14px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <CheckCircle size={14} />Password changed successfully!
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button type="submit" disabled={pwLoading} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 10, border: 'none', background: pwLoading ? 'var(--border)' : 'var(--orange)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: pwLoading ? 'not-allowed' : 'pointer' }}>
-              <Lock size={15} />{pwLoading ? 'Changing…' : 'Change Password'}
-            </button>
-          </div>
-        </form>
-      </Card>
     </div>
   );
 };

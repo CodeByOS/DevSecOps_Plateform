@@ -2,57 +2,32 @@ import { motion } from 'framer-motion';
 
 const StatusBadge = ({ status }) => {
   const map = {
-    blocked:   { bg: 'var(--red-dim)',    fg: 'var(--red)',    border: 'rgba(241, 122, 95, 0.3)' },
-    failed:    { bg: 'var(--red-dim)',    fg: 'var(--red)',    border: 'rgba(241, 122, 95, 0.3)' },
-    completed: { bg: 'var(--green-dim)',  fg: 'var(--green)',  border: 'rgba(66, 199, 127, 0.3)' },
-    approved:  { bg: 'var(--green-dim)',  fg: 'var(--green)',  border: 'rgba(66, 199, 127, 0.3)' },
-    pending:   { bg: 'var(--blue-dim)',   fg: 'var(--blue)',   border: 'rgba(79, 163, 255, 0.3)' },
-    running:   { bg: 'var(--orange-dim)', fg: 'var(--orange)', border: 'rgba(232, 168, 68, 0.3)' },
+    blocked:   { bg: 'bg-brand-red/10',    fg: 'text-brand-red',    border: 'border-brand-red/30' },
+    failed:    { bg: 'bg-brand-red/10',    fg: 'text-brand-red',    border: 'border-brand-red/30' },
+    completed: { bg: 'bg-brand-green/10',  fg: 'text-brand-green',  border: 'border-brand-green/30' },
+    approved:  { bg: 'bg-brand-green/10',  fg: 'text-brand-green',  border: 'border-brand-green/30' },
+    pending:   { bg: 'bg-brand-blue/10',   fg: 'text-brand-blue',   border: 'border-brand-blue/30' },
+    running:   { bg: 'bg-brand-orange/10', fg: 'text-brand-orange', border: 'border-brand-orange/30' },
   };
 
-  const colors = map[status] ?? { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)', border: 'var(--border)' };
-
+  const colors = map[status] ?? { bg: 'bg-bg-elevated', fg: 'text-text-muted', border: 'border-border-main' };
   const isRunning = status === 'running';
 
   return (
     <motion.span
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ 
-        scale: 1, 
-        opacity: 1,
-        boxShadow: isRunning ? [
-          '0 0 0 rgba(232, 168, 68, 0)',
-          '0 0 10px rgba(232, 168, 68, 0.3)',
-          '0 0 0 rgba(232, 168, 68, 0)'
-        ] : '0 0 0 rgba(0,0,0,0)'
-      }}
-      transition={{ 
-        duration: isRunning ? 2 : 0.3, 
-        repeat: isRunning ? Infinity : 0 
-      }}
-      style={{
-        fontSize: 11,
-        fontWeight: 700,
-        padding: '5px 10px',
-        borderRadius: 20,
-        background: colors.bg,
-        color: colors.fg,
-        border: `1px solid ${colors.border}`,
-        textTransform: 'uppercase',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        textAlign: 'center',
-        minWidth: '90px',
-        justifyContent: 'center',
-        letterSpacing: '0.5px'
-      }}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      className={`
+        text-[10px] font-black px-3 py-1 rounded-full border uppercase tracking-widest
+        inline-flex items-center gap-2 min-w-[90px] justify-center shadow-sm transition-all
+        ${colors.bg} ${colors.fg} ${colors.border}
+      `}
     >
       {isRunning && (
         <motion.span 
           animate={{ opacity: [1, 0.4, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }}
+          className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]"
         />
       )}
       {status ?? 'unknown'}
