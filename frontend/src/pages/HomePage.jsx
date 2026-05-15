@@ -14,7 +14,13 @@ import {
   Globe,
   LucideGitBranch,
   Menu,
-  X
+  X,
+  Code,
+  Server,
+  Database,
+  Activity,
+  Terminal,
+  Box
 } from 'lucide-react';
 import useToast from '../hooks/useToast';
 import Card from '../components/ui/Card';
@@ -293,27 +299,37 @@ const features = [
   {
     icon: GitBranch, color: 'var(--blue)',
     title: 'Static Analysis (SAST)',
-    desc: 'Powered by SonarQube. Depth-first vulnerability research covering OWASP Top 10 and SANS 25 risks.',
+    desc: 'Powered by SonarQube. Depth-first vulnerability research covering OWASP Top 10 and SANS 25 risks directly in your source code.',
   },
   {
     icon: AlertTriangle, color: 'var(--orange)',
     title: 'Composition Analysis (SCA)',
-    desc: 'Automated dependency graph analysis. Identify vulnerable libraries and transitive risks in real-time.',
+    desc: 'Automated dependency graph analysis. Identify vulnerable open-source libraries and transitive risks in real-time before they reach production.',
   },
   {
     icon: Zap, color: 'var(--red)',
     title: 'Dynamic Scanning (DAST)',
-    desc: 'Active runtime security probing. Simulate sophisticated attacks against staging endpoints automatically.',
+    desc: 'Active runtime security probing. Simulate sophisticated attacks against staging endpoints automatically during your CI/CD process.',
   },
   {
     icon: Brain, color: 'var(--purple)',
     title: 'ML Decision Engine',
-    desc: 'Proprietary risk modeling that weights findings across all scanners to automate deployment gating.',
+    desc: 'Proprietary risk modeling that weights findings across all scanners to automate deployment gating and reduce false positives by up to 80%.',
   },
+  {
+    icon: Shield, color: 'var(--green)',
+    title: 'Compliance & Auditing',
+    desc: 'Maintain continuous compliance with SOC2, HIPAA, and ISO27001 out-of-the-box. Export detailed audit logs with one click.',
+  },
+  {
+    icon: CheckCircle, color: 'var(--text-primary)',
+    title: 'Developer Focused',
+    desc: 'Detailed remediation advice directly in PRs. Empower developers to fix vulnerabilities without leaving their IDE or workflow.',
+  }
 ];
 
 const Features = () => (
-  <section id="features" style={{ padding: '120px 48px', maxWidth: 1200, margin: '0 auto' }}>
+  <section id="features" style={{ padding: '120px 48px', maxWidth: 1200, margin: '0 auto', position: 'relative' }}>
     <motion.div 
       initial="initial"
       whileInView="animate"
@@ -321,39 +337,58 @@ const Features = () => (
       variants={stagger}
       style={{ textAlign: 'center', marginBottom: 80 }}
     >
-      <motion.div variants={fadeIn} style={{ fontSize: 14, color: 'var(--blue)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
+      <motion.div variants={fadeIn} style={{ display: 'inline-block', padding: '6px 16px', background: 'var(--blue-dim)', borderRadius: 100, fontSize: 13, color: 'var(--blue)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: 16 }}>
         Advanced Protection
       </motion.div>
-      <motion.h2 variants={fadeIn} style={{ fontSize: 'clamp(2.2rem, 5vw, 3rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-1px' }}>
+      <motion.h2 variants={fadeIn} style={{ fontSize: 'clamp(2.2rem, 5vw, 3.2rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-1px' }}>
         Automate your entire security stack
       </motion.h2>
+      <motion.p variants={fadeIn} style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', maxWidth: 650, margin: '20px auto 0', lineHeight: 1.7 }}>
+        Unify your vulnerability management. We provide continuous scanning across your codebase, dependencies, and runtime environments with intelligent risk scoring.
+      </motion.p>
     </motion.div>
     
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+    <motion.div 
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true }}
+      variants={stagger}
+      style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}
+    >
       {features.map(({ icon: Icon, color, title, desc }) => (
         <motion.div 
           key={title}
-          whileHover={{ y: -8 }}
+          variants={fadeIn}
+          whileHover={{ y: -8, scale: 1.01, borderColor: color, boxShadow: `0 12px 40px ${color}15` }}
+          transition={{ duration: 0.3 }}
           style={{
-            padding: '32px',
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: 20, position: 'relative', overflow: 'hidden'
+            padding: '40px',
+            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            borderRadius: 24, position: 'relative', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
           }}
         >
           <div style={{
-            width: 52, height: 52, borderRadius: 14,
+            width: 56, height: 56, borderRadius: 16,
             background: `${color}15`,
             display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24,
-            border: `1px solid ${color}33`
+            border: `1px solid ${color}33`,
+            boxShadow: `inset 0 0 20px ${color}11`
           }}>
-            <Icon size={24} color={color} />
+            <Icon size={28} color={color} />
           </div>
-          <h3 style={{ margin: '0 0 14px', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h3>
-          <p style={{ margin: 0, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{desc}</p>
-          <div style={{ position: 'absolute', bottom: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle at bottom right, ${color}11, transparent 70%)` }} />
+          <h3 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>{title}</h3>
+          <p style={{ margin: 0, fontSize: 15, color: 'var(--text-secondary)', lineHeight: 1.7, flex: 1 }}>{desc}</p>
+          
+          <div style={{
+            position: 'absolute', top: 0, right: 0, width: 150, height: 150,
+            background: `radial-gradient(circle at top right, ${color}11, transparent 70%)`,
+            pointerEvents: 'none'
+          }} />
         </motion.div>
       ))}
-    </div>
+    </motion.div>
   </section>
 );
 
@@ -412,7 +447,16 @@ const HowItWorks = () => (
 );
 
 // About
-const techStack = ['React 19', 'Express', 'MongoDB Atlas', 'SonarQube', 'OWASP ZAP', 'Python Engine', 'Docker', 'Vite'];
+const techStack = [
+  { name: 'React 19', icon: Code },
+  { name: 'Express', icon: Server },
+  { name: 'MongoDB Atlas', icon: Database },
+  { name: 'SonarQube', icon: Activity },
+  { name: 'OWASP ZAP', icon: Zap },
+  { name: 'Python Engine', icon: Terminal },
+  { name: 'Docker', icon: Box },
+  { name: 'Vite', icon: Zap }
+];
 
 const About = () => (
   <section id="about" style={{ padding: '120px 48px', maxWidth: 1100, margin: '0 auto' }}>
@@ -456,16 +500,19 @@ const About = () => (
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Native Integrations</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {techStack.map(t => (
-            <motion.span 
-              key={t}
-              whileHover={{ scale: 1.1, background: 'var(--blue-dim)', borderColor: 'var(--blue)' }}
+            <motion.div 
+              key={t.name}
+              whileHover={{ scale: 1.05, background: 'var(--blue-dim)', borderColor: 'var(--blue)' }}
               style={{
                 padding: '8px 16px', borderRadius: 12,
                 border: '1px solid var(--border)',
                 background: 'var(--bg-elevated)',
                 fontSize: 14, color: 'var(--text-primary)', fontWeight: 600,
-                cursor: 'default'
-              }}>{t}</motion.span>
+                cursor: 'default', display: 'flex', alignItems: 'center', gap: 8
+              }}>
+              <t.icon size={16} color="var(--blue)" />
+              <span>{t.name}</span>
+            </motion.div>
           ))}
         </div>
       </motion.div>
