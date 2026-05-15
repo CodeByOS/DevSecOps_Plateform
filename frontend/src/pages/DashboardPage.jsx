@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ShieldAlert, BarChart3, Globe, Briefcase, ChevronDown, LayoutDashboard, Zap, Activity, ShieldCheck, Target } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldAlert, BarChart3, Globe, Briefcase, ChevronDown, LayoutDashboard, Zap, Activity, ShieldCheck, Target, Check } from 'lucide-react';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -51,6 +51,8 @@ const DashboardPage = () => {
   const { projects, loading: loadingProjects, error: projectsError } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState(''); // Empty string means Global
   const { stats, loading: loadingStats, error: statsError } = usePipelineStats(selectedProjectId);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const error = projectsError || statsError;
 
@@ -58,6 +60,16 @@ const DashboardPage = () => {
     () => projects.find(p => p._id === selectedProjectId),
     [projects, selectedProjectId]
   );
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const recentData = stats?.recent ?? [];
   const trendData = recentData.length
@@ -97,49 +109,123 @@ const DashboardPage = () => {
           </div>
         </div>
         
-        {/* Styled Project Selector */}
-        <div style={{ position: 'relative' }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 12, 
-            background: 'var(--bg-card)', 
-            padding: '10px 16px', 
-            borderRadius: 14, 
-            border: '1px solid var(--border)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            minWidth: 240,
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--blue)'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+        {/* Custom Project Selector Dropdown */}
+        <div style={{ position: 'relative' }} ref={dropdownRef}>
+          <motion.div 
+            onClick={() => !loadingProjects && setIsDropdownOpen(!isDropdownOpen)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 12, 
+              background: 'var(--bg-card)', 
+              padding: '12px 16px', 
+              borderRadius: 14, 
+              border: isDropdownOpen ? '1px solid var(--blue)' : '1px solid var(--border)',
+              boxShadow: isDropdownOpen ? '0 0 0 3px rgba(79, 163, 255, 0.1)' : '0 4px 12px rgba(0,0,0,0.1)',
+              minWidth: 260,
+              cursor: loadingProjects ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              userSelect: 'none'
+            }}
+            whileHover={{ borderColor: 'var(--blue)' }}
           >
             {selectedProjectId ? <Briefcase size={18} color="var(--blue)" /> : <Globe size={18} color="var(--purple)" />}
-            <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
-                fontSize: 14,
-                fontWeight: 700,
-                flex: 1,
-                outline: 'none',
-                cursor: 'pointer',
-                appearance: 'none',
-                fontFamily: 'inherit',
-                paddingRight: 24
-              }}
-              disabled={loadingProjects}
+            <span style={{ 
+              color: 'var(--text-primary)', 
+              fontSize: 14, 
+              fontWeight: 700, 
+              flex: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}>
+              {selectedProjectId ? selectedProject?.name : 'Global Overview'}
+            </span>
+            <motion.div
+              animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <option value="">Global Overview</option>
-              {projects.map((p) => (
-                <option key={p._id} value={p._id}>{p.name}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} style={{ position: 'absolute', right: 16, pointerEvents: 'none', color: 'var(--text-muted)' }} />
-          </div>
+              <ChevronDown size={16} color="var(--text-muted)" />
+            </motion.div>
+          </motion.div>
+
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 4, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  left: 0,
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 14,
+                  marginTop: 8,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+                  zIndex: 100,
+                  overflow: 'hidden',
+                  padding: 6
+                }}
+              >
+                <div 
+                  onClick={() => { setSelectedProjectId(''); setIsDropdownOpen(false); }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '10px 12px',
+                    borderRadius: 10,
+                    cursor: 'pointer',
+                    background: selectedProjectId === '' ? 'var(--blue-dim)' : 'transparent',
+                    color: selectedProjectId === '' ? 'var(--blue)' : 'var(--text-primary)',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    transition: 'all 0.15s'
+                  }}
+                  onMouseEnter={e => { if(selectedProjectId !== '') e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                  onMouseLeave={e => { if(selectedProjectId !== '') e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <Globe size={14} />
+                  <span style={{ flex: 1 }}>Global Overview</span>
+                  {selectedProjectId === '' && <Check size={14} />}
+                </div>
+
+                <div style={{ height: 1, background: 'var(--border)', margin: '4px 0', opacity: 0.5 }}></div>
+
+                <div style={{ maxHeight: 240, overflowY: 'auto' }}>
+                  {projects.map((p) => (
+                    <div 
+                      key={p._id}
+                      onClick={() => { setSelectedProjectId(p._id); setIsDropdownOpen(false); }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 10,
+                        cursor: 'pointer',
+                        background: selectedProjectId === p._id ? 'var(--blue-dim)' : 'transparent',
+                        color: selectedProjectId === p._id ? 'var(--blue)' : 'var(--text-primary)',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        transition: 'all 0.15s'
+                      }}
+                      onMouseEnter={e => { if(selectedProjectId !== p._id) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                      onMouseLeave={e => { if(selectedProjectId !== p._id) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <Briefcase size={14} />
+                      <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                      {selectedProjectId === p._id && <Check size={14} />}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
