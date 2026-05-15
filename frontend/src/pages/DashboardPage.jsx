@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldAlert, BarChart3, Globe, Briefcase, ChevronDown } from 'lucide-react';
+import { ShieldAlert, BarChart3, Globe, Briefcase, ChevronDown, LayoutDashboard, Zap, Activity, ShieldCheck, Target } from 'lucide-react';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -16,13 +16,20 @@ const StatCard = ({ label, value, hint, color, icon: Icon, delay }) => (
   <Card delay={delay}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase' }}>{label}</div>
-        <div style={{ fontSize: 28, fontWeight: 800, color: color ?? 'var(--text-primary)', letterSpacing: '-0.5px' }}>{value}</div>
-        {hint && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>{hint}</div>}
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
+        <div style={{ fontSize: 32, fontWeight: 800, color: color ?? 'var(--text-primary)', letterSpacing: '-1px' }}>{value}</div>
+        {hint && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, fontWeight: 500 }}>{hint}</div>}
       </div>
       {Icon && (
-        <div style={{ background: color ? `${color}15` : 'var(--bg-hover)', color: color ?? 'var(--text-muted)', padding: 8, borderRadius: 8 }}>
-          <Icon size={20} />
+        <div style={{ 
+          background: color ? `${color}15` : 'var(--bg-elevated)', 
+          color: color ?? 'var(--text-muted)', 
+          padding: 12, 
+          borderRadius: 12,
+          border: color ? `1px solid ${color}30` : '1px solid var(--border)',
+          boxShadow: color ? `0 8px 16px ${color}10` : 'none'
+        }}>
+          <Icon size={22} strokeWidth={2.5} />
         </div>
       )}
     </div>
@@ -67,11 +74,26 @@ const DashboardPage = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700 }}>Dashboard</h2>
-          <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 8 }}>
-            {selectedProjectId ? `Performance for ${selectedProject?.name}` : 'Global security posture across all projects'}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: 14, 
+            background: 'var(--blue-dim)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            border: '1px solid rgba(79, 163, 255, 0.2)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+          }}>
+            <LayoutDashboard size={24} color="var(--blue)" strokeWidth={2} />
+          </div>
+          <div>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px' }}>Dashboard</h2>
+            <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 4, fontWeight: 500 }}>
+              {selectedProjectId ? `Performance overview for ${selectedProject?.name}` : 'Global security posture across all projects'}
+            </div>
           </div>
         </div>
         
@@ -81,14 +103,18 @@ const DashboardPage = () => {
             display: 'flex', 
             alignItems: 'center', 
             gap: 12, 
-            background: 'var(--bg-elevated)', 
+            background: 'var(--bg-card)', 
             padding: '10px 16px', 
-            borderRadius: 12, 
+            borderRadius: 14, 
             border: '1px solid var(--border)',
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            minWidth: 220
-          }}>
-            {selectedProjectId ? <Briefcase size={16} color="var(--blue)" /> : <Globe size={16} color="var(--purple)" />}
+            minWidth: 240,
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--blue)'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >
+            {selectedProjectId ? <Briefcase size={18} color="var(--blue)" /> : <Globe size={18} color="var(--purple)" />}
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -97,7 +123,7 @@ const DashboardPage = () => {
                 border: 'none',
                 color: 'var(--text-primary)',
                 fontSize: 14,
-                fontWeight: 600,
+                fontWeight: 700,
                 flex: 1,
                 outline: 'none',
                 cursor: 'pointer',
@@ -118,7 +144,7 @@ const DashboardPage = () => {
       </div>
 
       {error && (
-        <div style={{ background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', padding: '12px 16px', borderRadius: 10, fontSize: 13, fontWeight: 500 }}>
+        <div style={{ background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 600 }}>
           {error}
         </div>
       )}
@@ -135,10 +161,23 @@ const DashboardPage = () => {
       ) : projects.length === 0 ? (
         <EmptyState
           title="No projects yet"
-          description="Create your first project to start receiving pipeline runs."
+          description="Create your first project to start receiving pipeline runs and security insights."
           action={(
-            <Link to="/projects" style={{ color: 'var(--blue)', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
-              Go to Projects
+            <Link to="/projects" style={{ 
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'var(--blue)',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: 12,
+              textDecoration: 'none', 
+              fontWeight: 700, 
+              fontSize: 14,
+              boxShadow: '0 4px 12px rgba(79, 163, 255, 0.3)'
+            }}>
+              <Zap size={16} fill="white" />
+              Get Started
             </Link>
           )}
         />
@@ -149,17 +188,25 @@ const DashboardPage = () => {
           animate="show"
           style={{ display: 'flex', flexDirection: 'column', gap: 28 }}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
             <StatCard label="Total Pipelines" value={loadingStats ? '—' : stats?.total ?? 0} icon={BarChart3} delay={0} />
             <StatCard label="Blocked Runs" value={loadingStats ? '—' : stats?.blocked ?? 0} color="var(--red)" icon={ShieldAlert} delay={0.05} />
-            <StatCard label="Pass Rate" value={loadingStats ? '—' : `${stats?.passRate ?? 0}%`} color="var(--green)" delay={0.1} />
-            <StatCard label="Avg Risk Score" value={loadingStats ? '—' : stats?.avgScore ?? 0} hint="Lower is safer" color="var(--blue)" delay={0.15} />
+            <StatCard label="Pass Rate" value={loadingStats ? '—' : `${stats?.passRate ?? 0}%`} color="var(--green)" icon={ShieldCheck} delay={0.1} />
+            <StatCard label="Avg Risk Score" value={loadingStats ? '—' : stats?.avgScore ?? 0} hint="Lower is safer" color="var(--blue)" icon={Target} delay={0.15} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 450px), 1fr))', gap: 20 }}>
-            <Card delay={0.2}>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {selectedProjectId ? 'Project Trend' : 'Recent Pipeline Activity'}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 450px), 1fr))', gap: 24 }}>
+            <Card delay={0.2} style={{ padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Activity size={16} color={selectedProjectId ? 'var(--blue)' : 'var(--purple)'} />
+                  {selectedProjectId ? 'Project Trend' : 'Recent Activity'}
+                </div>
+                {!loadingStats && stats?.recent?.length > 0 && (
+                   <span style={{ fontSize: 11, background: 'var(--bg-elevated)', padding: '4px 8px', borderRadius: 6, color: 'var(--text-muted)', fontWeight: 600 }}>
+                    LAST {stats.recent.length} RUNS
+                   </span>
+                )}
               </div>
               {loadingStats ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -167,11 +214,11 @@ const DashboardPage = () => {
                   {[1,2,3,4,5].map(i => <Skeleton key={i} height={50} />)}
                 </div>
               ) : (stats?.recent?.length ?? 0) === 0 ? (
-                <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No recent pipelines yet</div>
+                <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '40px 0', fontSize: 14 }}>No recent pipelines recorded.</div>
               ) : (
-                <div style={{ display: 'grid', gap: 20 }}>
+                <div style={{ display: 'grid', gap: 24 }}>
                   <MiniTrend data={trendData} color={selectedProjectId ? 'var(--blue)' : 'var(--purple)'} />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {recentData.slice().reverse().slice(0, 5).map((p) => (
                       <Link 
                         to={`/pipelines/${p._id}`}
@@ -181,22 +228,33 @@ const DashboardPage = () => {
                           alignItems: 'center', 
                           justifyContent: 'space-between', 
                           gap: 12, 
-                          padding: '12px', 
-                          background: 'var(--bg-elevated)', 
-                          borderRadius: 10, 
+                          padding: '14px', 
+                          background: 'var(--bg-card)', 
+                          borderRadius: 12, 
                           border: '1px solid var(--border)',
                           textDecoration: 'none',
-                          transition: 'transform 0.1s'
+                          transition: 'all 0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'}
-                        onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.transform = 'translateX(4px)';
+                          e.currentTarget.style.borderColor = 'var(--blue)';
+                          e.currentTarget.style.background = 'var(--bg-hover)';
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.transform = 'none';
+                          e.currentTarget.style.borderColor = 'var(--border)';
+                          e.currentTarget.style.background = 'var(--bg-card)';
+                        }}
                       >
                         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-                          <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>{p.branch ?? 'unknown'}</span>
-                          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{new Date(p.createdAt).toLocaleDateString()}</span>
+                          <span style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 700 }}>{p.branch ?? 'unknown'}</span>
+                          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, fontWeight: 500 }}>{new Date(p.createdAt).toLocaleDateString()} at {new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span className="font-mono" style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>{p.score ?? '—'}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Score</div>
+                            <div className="font-mono" style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 800 }}>{p.score ?? '—'}</div>
+                          </div>
                           <StatusBadge status={p.status} />
                         </div>
                       </Link>
@@ -206,18 +264,21 @@ const DashboardPage = () => {
               )}
             </Card>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {!selectedProjectId ? (
-                <Card delay={0.25}>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <ShieldAlert size={16} color="var(--red)" /> Recent Blocked Pipelines
+                <Card delay={0.25} style={{ border: '1px solid rgba(241, 122, 95, 0.2)', background: 'linear-gradient(135deg, var(--bg-card), var(--red-dim))' }}>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <ShieldAlert size={18} color="var(--red)" /> Recent Critical Blocks
                   </div>
                   {loadingStats ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {[1,2,3].map(i => <Skeleton key={i} height={45} />)}
                     </div>
                   ) : (stats?.recentlyBlocked?.length ?? 0) === 0 ? (
-                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0', fontSize: 13 }}>No blocked pipelines recently. Good job!</div>
+                    <div style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '30px 0', fontSize: 14, fontWeight: 500 }}>
+                      <ShieldCheck size={32} color="var(--green)" style={{ opacity: 0.3, marginBottom: 12 }} />
+                      <br />All security gates are clear.
+                    </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       {stats.recentlyBlocked.map(p => (
@@ -228,19 +289,25 @@ const DashboardPage = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            background: 'var(--red-dim)',
-                            border: '1px solid rgba(241, 122, 95, 0.2)',
-                            borderRadius: 8,
-                            textDecoration: 'none'
+                            padding: '12px 16px',
+                            background: 'rgba(0,0,0,0.2)',
+                            border: '1px solid rgba(241, 122, 95, 0.3)',
+                            borderRadius: 12,
+                            textDecoration: 'none',
+                            transition: 'all 0.2s'
                           }}
+                          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--red)'}
+                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(241, 122, 95, 0.3)'}
                         >
                           <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 600 }}>{p.project?.name}</span>
-                            <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 500 }}>{p.branch}</span>
+                            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 700 }}>{p.project?.name}</span>
+                            <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, marginTop: 2 }}>{p.branch}</span>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{p.score}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: 10, color: 'var(--red)', fontWeight: 700, textTransform: 'uppercase' }}>Fail Score</div>
+                              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{p.score}</span>
+                            </div>
                             <StatusBadge status="blocked" />
                           </div>
                         </Link>
@@ -250,59 +317,81 @@ const DashboardPage = () => {
                 </Card>
               ) : (
                 <Card delay={0.25}>
-                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Project Info</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Project Context</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Repository</div>
-                      <div style={{ fontSize: 13, color: 'var(--text-secondary)', wordBreak: 'break-all', fontWeight: 500 }}>{selectedProject.repoUrl}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Connected Repository</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)', fontWeight: 600, background: 'var(--bg-elevated)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)' }}>
+                        <Globe size={14} color="var(--blue)" />
+                        <span style={{ wordBreak: 'break-all' }}>{selectedProject.repoUrl.replace('https://', '')}</span>
+                      </div>
                     </div>
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Default Branch</div>
-                      <div className="font-mono" style={{ fontSize: 13, color: 'var(--blue)', fontWeight: 600 }}>{selectedProject.defaultBranch ?? 'main'}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                      <div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Target Branch</div>
+                        <div className="font-mono" style={{ fontSize: 13, color: 'var(--purple)', fontWeight: 700 }}>{selectedProject.defaultBranch ?? 'main'}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gate Mode</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.gateConfig?.mode === 'block' ? 'var(--red)' : 'var(--blue)' }}></div>
+                          <span style={{ fontSize: 13, color: 'var(--text-primary)', textTransform: 'uppercase', fontWeight: 700 }}>
+                            {selectedProject.gateConfig?.mode ?? 'block'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Gate Configuration</div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                        <span style={{ fontSize: 13, color: 'var(--orange)', textTransform: 'capitalize', fontWeight: 600 }}>
-                          {selectedProject.gateConfig?.mode ?? 'block'}
-                        </span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>at</span>
-                        <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 700 }}>{selectedProject.gateConfig?.threshold ?? 80}</span>
+                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Enforcement Policy</div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)' }}>
+                        <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 600 }}>Min Security Score</span>
+                        <span style={{ fontSize: 16, color: 'var(--blue)', fontWeight: 800 }}>{selectedProject.gateConfig?.threshold ?? 80}</span>
                       </div>
                     </div>
                     <Link to={`/projects/${selectedProject._id}`} style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
                       background: 'var(--bg-elevated)',
                       border: '1px solid var(--border)',
                       color: 'var(--text-primary)',
                       textDecoration: 'none', 
-                      fontWeight: 600, 
-                      marginTop: 8, 
+                      fontWeight: 700, 
                       fontSize: 13,
-                      padding: '10px',
-                      borderRadius: 8,
-                      textAlign: 'center'
-                    }}>
-                      Manage Project
+                      padding: '12px',
+                      borderRadius: 12,
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--blue)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--bg-elevated)'; }}
+                    >
+                      <Zap size={14} color="var(--blue)" />
+                      Configure Project
                     </Link>
                   </div>
                 </Card>
               )}
 
               <Card delay={0.3}>
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status Distribution</div>
-                <div style={{ display: 'grid', gap: 12, fontSize: 12 }}>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pipeline Status Distribution</div>
+                <div style={{ display: 'grid', gap: 16, fontSize: 12 }}>
                   {Object.entries(statusCounts).map(([key, value]) => (
                     <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <span style={{ width: 80, textTransform: 'capitalize', color: 'var(--text-muted)', fontWeight: 500 }}>{key}</span>
-                      <div style={{ flex: 1, height: 6, background: 'var(--bg-elevated)', borderRadius: 999, overflow: 'hidden' }}>
-                        <div style={{
-                          width: `${recentData.length ? (value / recentData.length) * 100 : 0}%`,
-                          height: '100%',
-                          background: key === 'blocked' || key === 'failed' ? 'var(--red)' : key === 'completed' ? 'var(--green)' : 'var(--blue)',
-                          transition: 'width 0.3s ease',
-                        }} />
+                      <span style={{ width: 85, textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, fontSize: 10, letterSpacing: '0.5px' }}>{key}</span>
+                      <div style={{ flex: 1, height: 8, background: 'var(--bg-elevated)', borderRadius: 4, overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${recentData.length ? (value / recentData.length) * 100 : 0}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          style={{
+                            height: '100%',
+                            background: key === 'blocked' || key === 'failed' ? 'var(--red)' : key === 'completed' ? 'var(--green)' : 'var(--blue)',
+                            boxShadow: `0 0 10px ${key === 'blocked' || key === 'failed' ? 'var(--red)' : key === 'completed' ? 'var(--green)' : 'var(--blue)'}40`
+                          }} 
+                        />
                       </div>
-                      <span style={{ width: 32, textAlign: 'right', color: 'var(--text-primary)', fontWeight: 700 }}>{value}</span>
+                      <span style={{ width: 32, textAlign: 'right', color: 'var(--text-primary)', fontWeight: 800, fontSize: 13 }}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -310,43 +399,54 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: 20 }}>
-            <Card delay={0.35}>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Risk Posture</div>
-              <div style={{ display: 'grid', placeItems: 'center', height: 220 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: 24 }}>
+            <Card delay={0.35} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 32 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', alignSelf: 'flex-start' }}>Aggregated Risk Index</div>
+              <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
                 <ScoreGauge score={parseFloat(stats?.avgScore ?? 0)} />
-                <div style={{ textAlign: 'center', marginTop: -20 }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Average risk across {selectedProjectId ? 'project' : 'platform'}</div>
-                </div>
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 16 }}>
+                <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 700 }}>Platform Security Score</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Based on {stats?.total ?? 0} historical pipeline executions</div>
               </div>
             </Card>
-            <Card delay={0.4} style={{ background: 'linear-gradient(135deg, var(--bg-card), var(--bg-base))' }}>
-              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Security Metrics Overview</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            
+            <Card delay={0.4} style={{ background: 'linear-gradient(135deg, var(--bg-card), var(--bg-base))', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.05 }}>
+                <ShieldCheck size={200} />
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 32, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Strategic Security Metrics</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, position: 'relative', zIndex: 1 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Vulnerability Pipeline Pass Rate</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--green)' }}>{stats?.passRate}%</div>
-                  <div style={{ height: 4, background: 'var(--bg-elevated)', borderRadius: 2, marginTop: 12 }}>
-                    <div style={{ width: `${stats?.passRate}%`, height: '100%', background: 'var(--green)', borderRadius: 2 }} />
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontWeight: 600 }}>Compliance Pass Rate</div>
+                  <div style={{ fontSize: 40, fontWeight: 900, color: 'var(--green)', letterSpacing: '-1.5px' }}>{stats?.passRate}%</div>
+                  <div style={{ height: 6, background: 'var(--bg-elevated)', borderRadius: 3, marginTop: 16, border: '1px solid var(--border-subtle)' }}>
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${stats?.passRate}%` }}
+                      transition={{ duration: 1.5, delay: 0.5 }}
+                      style={{ width: `${stats?.passRate}%`, height: '100%', background: 'var(--green)', borderRadius: 3, boxShadow: '0 0 12px var(--green)40' }} 
+                    />
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>Total Blocked Pipelines</div>
-                  <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--red)' }}>{stats?.blocked}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>Critical security gates triggered</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontWeight: 600 }}>System Interventions</div>
+                  <div style={{ fontSize: 40, fontWeight: 900, color: 'var(--red)', letterSpacing: '-1.5px' }}>{stats?.blocked}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16, fontWeight: 500 }}>Critical security gates triggered by policy violations</div>
                 </div>
               </div>
-              <div style={{ marginTop: 32, padding: 16, background: 'var(--bg-elevated)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ background: 'var(--blue-dim)', color: 'var(--blue)', padding: 8, borderRadius: 8 }}>
-                    <ShieldAlert size={18} />
+              
+              <div style={{ marginTop: 40, padding: 20, background: 'rgba(79, 163, 255, 0.05)', borderRadius: 16, border: '1px solid rgba(79, 163, 255, 0.2)', position: 'relative', zIndex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ background: 'var(--blue-dim)', color: 'var(--blue)', padding: 10, borderRadius: 12, border: '1px solid rgba(79, 163, 255, 0.3)' }}>
+                    <ShieldAlert size={20} strokeWidth={2.5} />
                   </div>
                   <div>
-                    <div style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 600 }}>Security Recommendation</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
+                    <div style={{ fontSize: 14, color: 'var(--text-primary)', fontWeight: 700 }}>Governance Advisory</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.5, fontWeight: 500 }}>
                       {parseFloat(stats?.avgScore) > 50 
-                        ? 'High average risk detected. Consider tightening security gate thresholds.' 
-                        : 'Risk levels are within acceptable limits. Maintain current security standards.'}
+                        ? 'Alert: Elevated average risk detected. It is recommended to review and tighten security gate thresholds across active projects.' 
+                        : 'Security posture is stable. Current policy enforcement is effectively maintaining risk levels within acceptable enterprise standards.'}
                     </div>
                   </div>
                 </div>

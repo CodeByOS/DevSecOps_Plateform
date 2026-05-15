@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, FolderKanban, Globe, ChevronRight } from 'lucide-react';
+import { Plus, X, FolderKanban, Globe, ChevronRight, Code2, GitBranch, LayoutGrid } from 'lucide-react';
 import { createProject } from '../api/projects';
 import Card from '../components/ui/Card';
 import Skeleton from '../components/ui/Skeleton';
@@ -10,7 +10,7 @@ import useToast from '../hooks/useToast';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 
 const tableCell = {
-  padding: '16px 12px',
+  padding: '16px 16px',
   borderBottom: '1px solid var(--border-subtle)',
   fontSize: 13,
 };
@@ -68,10 +68,25 @@ const ProjectsPage = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700 }}>Projects</h2>
-          <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 8 }}>
-            Manage repositories, gate configs, and team access
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: 14, 
+            background: 'var(--blue-dim)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            border: '1px solid rgba(79, 163, 255, 0.2)',
+            boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+          }}>
+            <FolderKanban size={24} color="var(--blue)" strokeWidth={2} />
+          </div>
+          <div>
+            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px' }}>Projects</h2>
+            <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 4, fontWeight: 500 }}>
+              Manage repositories and gate configurations
+            </div>
           </div>
         </div>
         <motion.button
@@ -90,7 +105,8 @@ const ProjectsPage = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            transition: 'background 0.2s'
+            transition: 'background 0.2s',
+            boxShadow: showCreate ? 'none' : '0 4px 12px rgba(79, 163, 255, 0.3)'
           }}
         >
           {showCreate ? <X size={18} /> : <Plus size={18} />}
@@ -198,10 +214,25 @@ const ProjectsPage = () => {
               {[1, 2, 3].map(i => <Skeleton key={i} height={60} style={{ marginBottom: 12 }} />)}
             </div>
           ) : projects.length === 0 ? (
-            <div style={{ padding: 60, textAlign: 'center', color: 'var(--text-muted)' }}>
-              <FolderKanban size={48} style={{ marginBottom: 16, opacity: 0.2 }} />
-              <div style={{ fontSize: 16, fontWeight: 500 }}>No projects found.</div>
-              <div style={{ fontSize: 13, marginTop: 8 }}>Initialize your first project to start automated security scans.</div>
+            <div style={{ padding: '80px 24px', textAlign: 'center' }}>
+              <div style={{ 
+                width: 80, 
+                height: 80, 
+                borderRadius: 24, 
+                background: 'var(--bg-elevated)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                border: '1px solid var(--border)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+              }}>
+                <LayoutGrid size={40} color="var(--text-muted)" style={{ opacity: 0.3 }} />
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>No projects found</div>
+              <div style={{ fontSize: 14, color: 'var(--text-muted)', marginTop: 8, maxWidth: 320, margin: '8px auto 0' }}>
+                Initialize your first project to start automated security scans and policy enforcement.
+              </div>
             </div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
@@ -219,12 +250,29 @@ const ProjectsPage = () => {
                   {projects.map((p) => (
                     <tr key={p._id} style={{ transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <td style={tableCell}>
-                        <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 14 }}>{p.name}</div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description || 'No description provided'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{ 
+                            width: 36, 
+                            height: 36, 
+                            borderRadius: 10, 
+                            background: 'linear-gradient(135deg, var(--bg-elevated), var(--bg-hover))', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                          }}>
+                            <Code2 size={18} color="var(--blue)" strokeWidth={2} />
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: 14 }}>{p.name}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description || 'No description provided'}</div>
+                          </div>
+                        </div>
                       </td>
                       <td style={tableCell}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)' }}>
-                          <Globe size={14} style={{ opacity: 0.5 }} />
+                          <GitBranch size={14} style={{ color: 'var(--purple)', opacity: 0.8 }} />
                           <span className="font-mono" style={{ fontSize: 12 }}>{p.repoUrl.replace('https://', '')}</span>
                         </div>
                       </td>
@@ -235,7 +283,10 @@ const ProjectsPage = () => {
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Score Threshold: {p.gateConfig?.threshold ?? 70}</div>
                       </td>
                       <td style={tableCell}>
-                        <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 500 }}>Active</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)' }}></div>
+                          <div style={{ fontSize: 12, color: 'var(--text-primary)', fontWeight: 500 }}>Active</div>
+                        </div>
                         <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>Last activity: {p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : '—'}</div>
                       </td>
                       <td style={{ ...tableCell, textAlign: 'right' }}>
