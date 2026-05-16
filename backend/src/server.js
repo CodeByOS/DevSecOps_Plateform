@@ -28,13 +28,15 @@ app.use(cors({
   credentials: true,       // Allow cookies (needed for refresh token)
 }));
 
-//* Rate limiter: max 100 requests per 15 minutes per IP
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { success: false, message: 'Too many requests, please try again later' },
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 300, // 300 requests per minute (enough for polling every 2-3 seconds)
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-app.use('/api', limiter);
+
+app.use('/api/', apiLimiter);
 
 //* Body parsing (except for webhooks which need raw body)
 app.use(cookieParser()); // Needed to read the refresh token cookie
