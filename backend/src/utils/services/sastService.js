@@ -1,101 +1,85 @@
 const { spawn } = require('child_process');
-const fs = require('fs');
 const path = require('path');
-const os = require('os');
+const fs = require('fs').promises;
+
+const runSast = async (codePath, pipelineId) => {
+    return new Promise((resolve, reject) => {
+        console.log(`  [SAST] Running Semgrep scan on ${codePath}`);
+
+        // Le fichier de sortie pour les résultats JSON
+        const outputFile = `/tmp/semgrep-${pipelineId}.json`;
+
+        // Lancement du conteneur Semgrep
+        // Il monte le dossier du code et utilise les règles par défaut (auto)
+        const args = [
+            'run', '--rm',
+            '-v', `${codePath}:/src`,
+            '-v', `/tmp:/tmp`, // Monter /tmp pour récupérer le rapport
+            'semgrep/semgrep',
+            'semgrep', 'scan',
+            '--config=auto',    // Utiliser les règles recommandées par Semgrep
+            '--json',           // Sortie au format JSON
+            `--output=${outputFile}`,
+            '/src'
+        ];
+
+        const proc = spawn('docker', args);
+
+        proc.stdout.on('data', d => process.stdout.write(d));
+        proc.stderr.on('data', d => process.stdout.write(d));
+
+        proc.on('close', async (code) => {
+            // Semgrep retourne 0 (succès), ou 1 (s'il trouve des failles - ce qui est normal pour nous)
+            // S'il crashe avec un autre code, c'est une vraie erreur.
+            if (code !== 0 && code !== 1) {
+                return reject(new Error(`Semgrep exited with abnormal code ${code}`));
+            }
+
+            try {
+                // 1. Lire le fichier JSON généré
+                const rawData = await fs.readFile(outputFile, 'utf-8');
+                const semgrepReport = JSON.parse(rawData);
+
+                // 2. Nettoyer le fichier temporaire
+                await fs.unlink(outputFile).catch(e => console.warn('Could not delete temp file', e));
+
+                // 3. Normaliser les résultats pour votre Pipeline Runner et le ML
+                const result = { critical: 0, high: 0, medium: 0, low: 0, issues: [] };
+
+                semgrepReport.results.forEach(issue => {
+                    // Semgrep utilise INFO, WARNING, ERROR. On les mappe à votre format.
+                    const sev = normalizeSeverity(issue.extra?.severity);
+                    result[sev]++;
+
+                    result.issues.push({
+                        ruleId: issue.check_id,
+                        severity: sev,
+                        type: 'VULNERABILITY',
+                        message: issue.extra?.message || 'Security issue detected',
+                        filePath: issue.path || '',
+                        line: issue.start?.line || 0,
+                    });
+                });
+
+                console.log(`  [SAST] Semgrep Done — High: ${result.high}, Medium: ${result.medium}, Low: ${result.low}`);
+                resolve(result);
+
+            } catch (err) {
+                console.error('  [SAST] Error parsing Semgrep output:', err);
+                reject(err);
+            }
+        });
+    });
+};
 
 const normalizeSeverity = (s) => {
     if (!s) return 'low';
-    const s_lower = s.toLowerCase();
-    if (s_lower === 'error' || s_lower === 'critical') return 'critical';
-    if (s_lower === 'warning' || s_lower === 'high') return 'high';
-    if (s_lower === 'info' || s_lower === 'medium') return 'medium';
-    return 'low';
-};
-
-const runSemgrep = (codePath, pipelineId) => {
-    return new Promise((resolve) => {
-        const reportPath = path.join(os.tmpdir(), `semgrep-${pipelineId}.json`);
-        console.log(`  [SAST] Running semgrep on ${codePath}`);
-
-        const args = [
-            '--config', 'auto',
-            '--json',
-            '--output', reportPath,
-            '--timeout', '60',
-            '--max-memory', '1024',
-            '--no-git-ignore',
-            codePath,
-        ];
-
-        const proc = spawn('semgrep', args, {
-            env: { ...process.env, SEMGREP_SEND_METRICS: 'off' },
-        });
-
-        let stderr = '';
-        proc.stderr.on('data', d => { stderr += d.toString(); });
-        proc.stdout.on('data', d => process.stdout.write(d));
-
-        proc.on('close', code => {
-            if (code !== 0 && code !== 1) {
-                console.warn(`  [SAST] semgrep exited with code ${code}: ${stderr.slice(0, 300)}`);
-                return resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
-            }
-            resolve(reportPath);
-        });
-
-        proc.on('error', err => {
-            console.warn(`  [SAST] semgrep not found: ${err.message}`);
-            resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
-        });
-
-        setTimeout(() => {
-            proc.kill('SIGTERM');
-            resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
-        }, 90_000);
-    });
-};
-
-const parseReport = (reportPath) => {
-    if (typeof reportPath === 'object') return reportPath;
-
-    const result = { critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] };
-
-    if (!fs.existsSync(reportPath)) {
-        console.warn('  [SAST] No semgrep report found, returning empty result');
-        return result;
-    }
-
-    let raw;
-    try {
-        raw = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
-    } catch (e) {
-        console.warn('  [SAST] Could not parse semgrep report:', e.message);
-        return result;
-    } finally {
-        try { fs.unlinkSync(reportPath); } catch { }
-    }
-
-    (raw.results || []).forEach(finding => {
-        const sev = normalizeSeverity(finding.extra?.severity || finding.severity);
-        if (result[sev] !== undefined) result[sev]++;
-        result.issues.push({
-            ruleId: finding.check_id || 'unknown',
-            severity: sev,
-            type: 'VULNERABILITY',
-            message: (finding.extra?.message || finding.message || '').slice(0, 300),
-            filePath: finding.path || '',
-            line: finding.start?.line || 0,
-        });
-    });
-
-    return result;
-};
-
-const runSast = async (codePath, pipelineId) => {
-    const reportPathOrResult = await runSemgrep(codePath, pipelineId);
-    const result = parseReport(reportPathOrResult);
-    console.log(`  [SAST] Done — Critical: ${result.critical}, High: ${result.high}, Medium: ${result.medium}, Total: ${result.issues.length}`);
-    return result;
+    const severityMap = {
+        'ERROR': 'high',      // Semgrep 'ERROR'
+        'WARNING': 'medium',  // Semgrep 'WARNING'
+        'INFO': 'low'         // Semgrep 'INFO'
+    };
+    return severityMap[s.toUpperCase()] || 'low';
 };
 
 module.exports = { runSast };
