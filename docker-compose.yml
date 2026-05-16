@@ -101,10 +101,10 @@ services:
 
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5001/health" ]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      start_period: 30s
-      retries: 3
+      start_period: 120s # give it 2 min to train + start gunicorn
+      retries: 5
 
     networks:
       - secops-network
