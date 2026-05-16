@@ -100,11 +100,11 @@ services:
       - "5001"
 
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:5001/health" ]
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')" ]
       interval: 15s
       timeout: 10s
-      start_period: 120s # give it 2 min to train + start gunicorn
-      retries: 5
+      start_period: 60s
+      retries: 3
 
     networks:
       - secops-network
