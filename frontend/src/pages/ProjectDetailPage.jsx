@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Trash2, Copy, Check, ChevronLeft, ExternalLink, Settings, Users, Shield, Zap } from 'lucide-react';
+import { Trash2, Copy, Check, ChevronLeft, ExternalLink, Settings, Users, Shield, Zap, AlertTriangle } from 'lucide-react';
 import { addMember, removeMember, updateProject, deleteProject } from '../api/projects';
 import Card from '../components/ui/Card';
+import Modal from '../components/ui/Modal';
 import StatusBadge from '../components/ui/StatusBadge';
 import MiniTrend from '../components/charts/MiniTrend';
 import useProject from '../hooks/useProject';
@@ -57,6 +58,7 @@ const ProjectDetailPage = () => {
   const [removingId, setRemovingId] = useState('');
   const [copied, setCopied] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     if (!project) return;
@@ -89,8 +91,11 @@ const ProjectDetailPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDeleteProject = async () => {
-    if (!window.confirm(`Are you sure you want to delete "${project.name}"? This action is irreversible.`)) return;
+  const handleDeleteProject = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteProject = async () => {
     setDeleting(true);
     try {
       await deleteProject(project._id);
@@ -98,6 +103,7 @@ const ProjectDetailPage = () => {
       navigate('/projects');
     } catch (err) {
       toastError(err.response?.data?.message || 'Failed to delete project');
+      setShowDeleteModal(false);
     } finally {
       setDeleting(false);
     }
@@ -513,6 +519,78 @@ const ProjectDetailPage = () => {
           </>
         )}
       </Card>
+
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => !deleting && setShowDeleteModal(false)}
+        title="Delete Project"
+        footer={
+          <>
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              disabled={deleting}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDeleteProject}
+              disabled={deleting}
+              style={{
+                padding: '8px 24px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--red)',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              {deleting ? 'Deleting...' : 'Delete Permanently'}
+            </button>
+          </>
+        }
+      >
+        <div style={{ display: 'flex', gap: 16 }}>
+          <div 
+            style={{ 
+              width: 48, 
+              height: 48, 
+              borderRadius: 12, 
+              background: 'var(--red-dim)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              flexShrink: 0
+            }}
+          >
+            <AlertTriangle size={24} color="var(--red)" />
+          </div>
+          <div>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)', fontSize: 16 }}>
+              Are you absolutely sure?
+            </p>
+            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.5 }}>
+              This action cannot be undone. This will permanently delete the project 
+              <strong style={{ color: 'var(--text-primary)' }}> {project.name}</strong>, 
+              including all its pipeline history, scan results, and configuration.
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
