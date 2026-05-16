@@ -117,4 +117,4 @@ services:
 # ---------------- NETWORK ----------------
 networks:
   secops-network:
-    driver: bridge
+    driver: bridge # Added at the end for docker-compose up --build --no-build
