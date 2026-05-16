@@ -18,6 +18,8 @@ COPY features.py model.py train.py app.py ./
 RUN chown -R mluser:mluser /app
 
 USER mluser
+
+# Train model at build time
 RUN python train.py
 
 ENV PORT=5001

@@ -1,38 +1,46 @@
-// backend/src/utils/services/scaService.js
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 const runSca = async (codePath, pipelineId) => {
     console.log(`  [SCA] Running npm audit on ${codePath}`);
+
+    if (!fs.existsSync(path.join(codePath, 'package.json'))) {
+        console.log('  [SCA] No package.json found — skipping');
+        return emptyResult();
+    }
+
     return new Promise((resolve) => {
-        // Check if package.json exists
-        if (!fs.existsSync(path.join(codePath, 'package.json'))) {
-            console.log('  [SCA] No package.json found — skipping');
-            return resolve(emptyResult());
-        }
-
-        const proc = spawn('npm', ['audit', '--json', '--prefix', codePath], {
+        // First install dependencies so audit works
+        const install = spawn('npm', ['install', '--prefix', codePath, '--ignore-scripts'], {
             cwd: codePath,
-            env: { ...process.env, npm_config_update_notifier: 'false' },
         });
 
-        let stdout = '';
-        proc.stdout.on('data', d => { stdout += d.toString(); });
-        proc.stderr.on('data', d => process.stderr.write(d));
+        install.on('close', () => {
+            const proc = spawn('npm', ['audit', '--json', '--prefix', codePath], {
+                cwd: codePath,
+                env: { ...process.env, npm_config_update_notifier: 'false' },
+            });
 
-        proc.on('close', () => {
-            try {
-                const report = JSON.parse(stdout);
-                resolve(parseNpmAudit(report));
-            } catch {
-                resolve(emptyResult());
-            }
+            let stdout = '';
+            proc.stdout.on('data', d => { stdout += d.toString(); });
+            proc.stderr.on('data', d => process.stderr.write(d));
+
+            proc.on('close', () => {
+                try {
+                    const report = JSON.parse(stdout);
+                    resolve(parseNpmAudit(report));
+                } catch {
+                    resolve(emptyResult());
+                }
+            });
+
+            proc.on('error', () => resolve(emptyResult()));
+
+            setTimeout(() => { proc.kill(); resolve(emptyResult()); }, 60_000);
         });
 
-        proc.on('error', () => resolve(emptyResult()));
-
-        setTimeout(() => { proc.kill(); resolve(emptyResult()); }, 60_000);
+        install.on('error', () => resolve(emptyResult()));
     });
 };
 
@@ -44,8 +52,13 @@ const parseNpmAudit = (report) => {
         const sev = (vuln.severity || '').toLowerCase();
         const cvss = vuln.cvss?.score || 0;
 
-        if (sev === 'critical') { result.criticalCves++; result.maxCvssScore = Math.max(result.maxCvssScore, cvss); }
-        else if (sev === 'high') { result.highCves++; result.maxCvssScore = Math.max(result.maxCvssScore, cvss); }
+        if (sev === 'critical') {
+            result.criticalCves++;
+            result.maxCvssScore = Math.max(result.maxCvssScore, cvss);
+        } else if (sev === 'high') {
+            result.highCves++;
+            result.maxCvssScore = Math.max(result.maxCvssScore, cvss);
+        }
 
         if (vuln.fixAvailable === false) result.outdatedCount++;
 
@@ -56,7 +69,9 @@ const parseNpmAudit = (report) => {
             description: (vuln.title || '').slice(0, 300),
             packageName: vuln.name || '',
             installedVersion: vuln.range || 'unknown',
-            fixedVersion: vuln.fixAvailable?.version || null,
+            fixedVersion: typeof vuln.fixAvailable === 'object'
+                ? vuln.fixAvailable?.version || null
+                : null,
         });
     });
 

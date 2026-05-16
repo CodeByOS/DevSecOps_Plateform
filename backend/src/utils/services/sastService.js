@@ -13,7 +13,7 @@ const normalizeSeverity = (s) => {
 };
 
 const runSemgrep = (codePath, pipelineId) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const reportPath = path.join(os.tmpdir(), `semgrep-${pipelineId}.json`);
         console.log(`  [SAST] Running semgrep on ${codePath}`);
 
@@ -36,10 +36,8 @@ const runSemgrep = (codePath, pipelineId) => {
         proc.stdout.on('data', d => process.stdout.write(d));
 
         proc.on('close', code => {
-            // semgrep exits 1 when findings exist — that's expected
             if (code !== 0 && code !== 1) {
                 console.warn(`  [SAST] semgrep exited with code ${code}: ${stderr.slice(0, 300)}`);
-                // Return empty result instead of rejecting — don't block the pipeline
                 return resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
             }
             resolve(reportPath);
@@ -50,7 +48,6 @@ const runSemgrep = (codePath, pipelineId) => {
             resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
         });
 
-        // Hard timeout: 90 seconds
         setTimeout(() => {
             proc.kill('SIGTERM');
             resolve({ critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] });
@@ -59,7 +56,7 @@ const runSemgrep = (codePath, pipelineId) => {
 };
 
 const parseReport = (reportPath) => {
-    if (typeof reportPath === 'object') return reportPath; // already an empty result
+    if (typeof reportPath === 'object') return reportPath;
 
     const result = { critical: 0, high: 0, medium: 0, low: 0, coverage: 0, issues: [] };
 

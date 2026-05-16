@@ -1,4 +1,3 @@
-# backend/Dockerfile
 FROM node:20-alpine AS base
 WORKDIR /app
 
@@ -8,7 +7,7 @@ RUN npm ci --omit=dev
 
 FROM base AS production
 
-# Install git (for cloneService) + Python + semgrep (for SAST)
+# git for cloneService + Python + semgrep for SAST
 RUN apk add --no-cache git python3 py3-pip \
   && pip3 install semgrep --break-system-packages --quiet
 
@@ -22,7 +21,7 @@ USER appuser
 
 EXPOSE 4000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:4000/health || exit 1
 
 CMD ["node", "src/server.js"]
