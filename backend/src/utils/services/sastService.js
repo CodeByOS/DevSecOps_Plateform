@@ -53,8 +53,8 @@ const runSonarScanner = (codePath, projectKey) => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-//! Step 3: Poll the CE (Compute Engine) task until analysis is done
-const waitForAnalysis = async (projectKey, timeoutMs = 600_000) => {
+//! Step 3: Poll the CE (Compute Engine) task until analysis is done 
+const waitForAnalysis = async (projectKey, timeoutMs = 120_000) => {
     const start = Date.now();
     console.log(`  [SAST] Waiting for analysis to complete...`);
 
