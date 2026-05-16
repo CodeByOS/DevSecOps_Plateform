@@ -73,18 +73,17 @@ services:
     networks:
       - secops-network
 
-  # ---------------- SONARQUBE (LIGHT MODE) ----------------
+  # ---------------- SONARQUBE ----------------
   sonarqube:
     image: sonarqube:lts-community
     container_name: sonarqube
-    restart: "no" # run only when needed
+    restart: always
 
     ports:
       - "9000:9000"
 
     environment:
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-      SONAR_JAVA_OPTS: "-Xms256m -Xmx512m"
 
     volumes:
       - sonarqube_data:/opt/sonarqube/data
@@ -93,7 +92,6 @@ services:
 
     networks:
       - secops-network
-
   # ---------------- OWASP ZAP (LOW MEMORY MODE) ----------------
   zap:
     image: zaproxy/zap-stable
