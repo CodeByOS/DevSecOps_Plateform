@@ -16,7 +16,7 @@ An enterprise-grade **DevSecOps Orchestration Platform** designed to unify secur
 
 ## ✨ Key Features
 
-- **🚀 Automated Security Pipelines:** Orchestrate SAST (SonarQube) and DAST (OWASP ZAP) scans automatically on every push.
+- **🚀 Automated Security Pipelines:** Orchestrate SAST (Semgrep) and DAST (OWASP ZAP) scans automatically on every push.
 - **🤖 AI-Powered Threat Detection:** Integrated Python ML Service for predicting vulnerability impact and anomaly detection.
 - **📊 Unified Security Dashboard:** Real-time visualization of security posture, pipeline health, and compliance metrics.
 - **🔐 Secure Authentication:** Robust JWT-based auth system with HTTP-only refresh tokens and role-based access control (RBAC).
@@ -49,7 +49,7 @@ An enterprise-grade **DevSecOps Orchestration Platform** designed to unify secur
 ### Infrastructure
 - **Proxy:** Nginx (Reverse proxy & Static serving)
 - **Containerization:** Docker & Docker Compose
-- **Tools:** SonarQube, OWASP ZAP
+- **Tools:** Semgrep, OWASP ZAP
 
 ---
 
@@ -64,7 +64,7 @@ graph TD
     Nginx -->|Port 4000| Backend[Express API]
     Backend -->|Internal| MongoDB[(MongoDB)]
     Backend -->|Port 5001| ML[ML Service]
-    Backend -->|Orchestration| Sonar[SonarQube]
+    Backend -->|Orchestration| Semgrep[Semgrep]
     Backend -->|Orchestration| ZAP[OWASP ZAP]
 ```
 

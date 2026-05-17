@@ -330,7 +330,7 @@ const PipelineDetailPage = () => {
             <summary style={{ padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', listStyle: 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ padding: 6, background: 'rgba(79, 163, 255, 0.1)', color: 'var(--blue)', borderRadius: 6 }}><Shield size={16} /></div>
-                <span style={{ fontWeight: 600, fontSize: 14 }}>SAST (SonarQube)</span>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>SAST (Semgrep)</span>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{scan?.sast?.issues?.length ?? 0} issues</span>
               </div>
               <ChevronRight size={18} color="var(--text-muted)" />

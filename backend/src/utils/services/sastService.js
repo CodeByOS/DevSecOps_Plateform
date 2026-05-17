@@ -1,19 +1,9 @@
-// SAST service: runs Semgrep on a cloned repository and returns normalised findings.
-// Fixed issues:
-//  - Use offline rulesets instead of '--config auto' (avoids network dependency)
-//  - Correct severity normalisation (info stays info/low, not medium)
-//  - Isolate subprocess env (no secret leakage)
-//  - Proper cleanup in all code paths
-//  - Mark step failed instead of silently returning empty on timeout/crash
-//  - Remove --no-git-ignore so vendor/node_modules dirs are respected by .gitignore
-//  - Cap issue list at 500 to avoid bloating MongoDB documents
-
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// ── Severity normalisation ────────────────────────────────────────────────────
+// Severity normalisation 
 // Semgrep emits: ERROR | WARNING | INFO (and sometimes the literals below)
 // We map these onto our 5-level scale.
 const normalizeSeverity = (s) => {
@@ -30,7 +20,7 @@ const normalizeSeverity = (s) => {
     }
 };
 
-// ── Semgrep invocation ────────────────────────────────────────────────────────
+// Semgrep invocation
 // Preferred ruleset order (offline-friendly, no network required after install):
 //   1. p/owasp-top-ten  – high-signal security rules
 //   2. p/secrets        – credential/key detection
@@ -183,7 +173,7 @@ const runSemgrepAuto = (codePath, pipelineId) => {
     });
 };
 
-// ── Report parsing ────────────────────────────────────────────────────────────
+// Report parsing 
 const emptyResult = () => ({
     critical: 0, high: 0, medium: 0, low: 0, info: 0, coverage: 0, issues: [],
 });
@@ -244,7 +234,7 @@ const parseReport = (reportPath) => {
     return result;
 };
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// Public API 
 const runSast = async (codePath, pipelineId) => {
     let { reportPath, fallback, notFound, timedOut } = await runSemgrep(codePath, pipelineId);
 
