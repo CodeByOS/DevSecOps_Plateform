@@ -1,13 +1,5 @@
 // Runs all security steps sequentially: clone → SAST → SCA → DAST → ML → Gate
 // Each step updates the pipeline status in real time.
-//
-// Fixes applied vs original:
-//  - Fallback scoring weights NOW MATCH train.py FEATURE_WEIGHTS exactly
-//    (nb_medium and max_cvss were missing; nb_medium_alerts was missing)
-//  - Fallback score is clamped to [0, 100] and uses Math.min/max properly
-//  - runMlScoring now surfaces the ML service error message in the log
-//  - Poll /retrain/status instead of fire-and-forget in the retrain flow
-//    (this file doesn't call retrain, but the pattern is documented)
 
 const axios = require('axios');
 const Pipeline = require('../models/Pipeline');
@@ -46,7 +38,7 @@ const updateStep = async (pipelineId, stepName, status, summary = {}, errorMsg =
 };
 
 
-// ── Rule-based fallback score ─────────────────────────────────────────────────
+// Rule-based fallback score
 // IMPORTANT: these weights MUST stay in sync with FEATURE_WEIGHTS in train.py.
 // If you change the ML model's training formula, update this too.
 const FALLBACK_WEIGHTS = {
@@ -112,7 +104,7 @@ const runMlScoring = async (sast, sca, dast) => {
 };
 
 
-// ── Gate decision ─────────────────────────────────────────────────────────────
+// Gate decision 
 const applyGate = (score, gateConfig) => {
     const { threshold, mode } = gateConfig;
 
@@ -134,7 +126,7 @@ const runPipeline = async (pipelineId, project) => {
     let codePath = null;
 
     try {
-        //! CLONE ─────────────────────────────────────────────────────────────────
+        //! CLONE 
         await updateStep(pipelineId, 'clone', 'running');
         codePath = await cloneRepo(
             project.repoUrl,
@@ -143,7 +135,7 @@ const runPipeline = async (pipelineId, project) => {
         );
         await updateStep(pipelineId, 'clone', 'success', { path: codePath });
 
-        //! SAST ──────────────────────────────────────────────────────────────────
+        //! SAST
         await updateStep(pipelineId, 'sast', 'running');
         const sast = await runSast(codePath, pipelineId.toString());
         scanResult.sast = sast;
@@ -154,7 +146,7 @@ const runPipeline = async (pipelineId, project) => {
             total: sast.issues.length,
         });
 
-        //! SCA ───────────────────────────────────────────────────────────────────
+        //! SCA ──
         await updateStep(pipelineId, 'sca', 'running');
         const sca = await runSca(codePath, pipelineId.toString());
         scanResult.sca = sca;
@@ -163,7 +155,7 @@ const runPipeline = async (pipelineId, project) => {
             highCves: sca.highCves,
         });
 
-        //! DAST ──────────────────────────────────────────────────────────────────
+        //! DAST ─
         await updateStep(pipelineId, 'dast', 'running');
         let dast;
         if (project.stagingUrl) {
@@ -181,7 +173,7 @@ const runPipeline = async (pipelineId, project) => {
             });
         }
 
-        //! ML SCORING ─────────────────────────────────────────────────────────────
+        //! ML SCORING
         await updateStep(pipelineId, 'ml_score', 'running');
         const ml = await runMlScoring(sast, sca, dast);
         scanResult.mlScore = ml;
@@ -189,7 +181,7 @@ const runPipeline = async (pipelineId, project) => {
 
         await scanResult.save();
 
-        //! GATE DECISION ──────────────────────────────────────────────────────────
+        //! GATE DECISION
         await updateStep(pipelineId, 'gate', 'running');
         const decision = applyGate(ml.score, project.gateConfig);
         const finalStatus = decision === 'blocked' ? 'blocked' : 'completed';

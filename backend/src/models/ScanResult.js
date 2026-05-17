@@ -3,7 +3,7 @@
 
 const mongoose = require('mongoose');
 
-//* Individual issue found by SonarQube (SAST)
+//* Individual issue found by Semgrep (SAST)
 const SastIssueSchema = new mongoose.Schema(
   {
     ruleId: String,
@@ -52,7 +52,7 @@ const ScanResultSchema = new mongoose.Schema(
       unique: true, // One scan result document per pipeline
     },
 
-    //* SAST results (SonarQube)
+    //* SAST results (Semgrep)
     sast: {
       critical: { type: Number, default: 0 },
       high:     { type: Number, default: 0 },

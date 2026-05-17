@@ -299,7 +299,7 @@ const features = [
   {
     icon: GitBranch, color: 'var(--blue)',
     title: 'Static Analysis (SAST)',
-    desc: 'Powered by SonarQube. Depth-first vulnerability research covering OWASP Top 10 and SANS 25 risks directly in your source code.',
+    desc: 'Powered by Semgrep. Depth-first vulnerability research covering OWASP Top 10 and SANS 25 risks directly in your source code.',
   },
   {
     icon: AlertTriangle, color: 'var(--orange)',
@@ -451,7 +451,7 @@ const techStack = [
   { name: 'React 19', icon: Code },
   { name: 'Express', icon: Server },
   { name: 'MongoDB Atlas', icon: Database },
-  { name: 'SonarQube', icon: Activity },
+  { name: 'Semgrep', icon: Activity },
   { name: 'OWASP ZAP', icon: Zap },
   { name: 'Python Engine', icon: Terminal },
   { name: 'Docker', icon: Box },
