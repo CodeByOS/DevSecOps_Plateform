@@ -45,7 +45,8 @@ const runPassiveScan = async () => {
 };
 
 //* Step 4: Run active scan (fires attack payloads)
-const runActiveScan = async (targetUrl, timeoutMs = 600_000) => {
+//* REPLACE the existing runActiveScan function with this
+const runActiveScan = async (targetUrl, timeoutMs = 120_000) => { // ← reduced from 600_000 (10min) to 2min
     const { data } = await zap('ascan/action/scan', {
         url: targetUrl,
         recurse: true,
@@ -55,13 +56,35 @@ const runActiveScan = async (targetUrl, timeoutMs = 600_000) => {
     console.log(`  [DAST] Active scan started (scanId: ${scanId})`);
 
     const start = Date.now();
+    let lastProgress = -1;
+    let stuckCount = 0;
+
     while (Date.now() - start < timeoutMs) {
         const { data: status } = await zap('ascan/view/status', { scanId });
         const pct = parseInt(status.status);
+
+        //* If progress hasn't changed in 3 checks (15s), stop waiting
+        if (pct === lastProgress) {
+            stuckCount++;
+            if (stuckCount >= 3) {
+                console.warn(`  [DAST] Active scan stuck at ${pct}% — stopping early`);
+                await zap('ascan/action/stopScan', { scanId });
+                break;
+            }
+        } else {
+            stuckCount = 0;
+            lastProgress = pct;
+        }
+
         if (pct >= 100) break;
         console.log(`  [DAST] Active scan progress: ${pct}%`);
         await sleep(5000);
     }
+
+    //* Stop scan if still running after timeout
+    try {
+        await zap('ascan/action/stopScan', { scanId });
+    } catch { /* ignore */ }
 };
 
 //* Step 5: Fetch and normalize alerts
