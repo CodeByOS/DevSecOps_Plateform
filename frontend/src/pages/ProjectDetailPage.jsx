@@ -27,15 +27,15 @@ const ProjectDetailPage = () => {
   const { user } = useAuth();
   const { success, error: toastError } = useToast();
   const isAdmin = user?.role === 'admin';
-  
+
   // URL-persistent filters
   const statusFilter = searchParams.get('status') || '';
   const decisionFilter = searchParams.get('decision') || '';
   const branchFilter = searchParams.get('branch') || '';
   const pipelinePage = parseInt(searchParams.get('page') || '1');
 
-  const { pipelines, meta, loading: pipelineLoading, error: pipelineError } = usePipelines(id, { 
-    page: pipelinePage, 
+  const { pipelines, meta, loading: pipelineLoading, error: pipelineError } = usePipelines(id, {
+    page: pipelinePage,
     limit: 10,
     status: statusFilter || undefined,
     decision: decisionFilter || undefined,
@@ -48,6 +48,7 @@ const ProjectDetailPage = () => {
     notifySlack: false,
     notifyEmail: false,
     emailRecipients: '',
+    stagingUrl: '',
   });
 
   const [savingGate, setSavingGate] = useState(false);
@@ -68,6 +69,7 @@ const ProjectDetailPage = () => {
       notifySlack: Boolean(project.gateConfig?.notifySlack),
       notifyEmail: Boolean(project.gateConfig?.notifyEmail),
       emailRecipients: project.gateConfig?.emailRecipients?.join(', ') ?? '',
+      stagingUrl: project.stagingUrl ?? '',
     });
   }, [project]);
 
@@ -115,6 +117,7 @@ const ProjectDetailPage = () => {
     setSavingGate(true);
     try {
       const payload = {
+        stagingUrl: gateForm.stagingUrl.trim(),
         gateConfig: {
           mode: gateForm.mode,
           threshold: Number(gateForm.threshold) || 0,
@@ -248,7 +251,7 @@ const ProjectDetailPage = () => {
             <div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4 }}>Description</div>
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{project.description || 'No description provided.'}</div>
-              
+
               <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, marginTop: 16 }}>Default Branch</div>
               <div className="font-mono" style={{ fontSize: 13, color: 'var(--blue)', fontWeight: 600 }}>{project.defaultBranch ?? 'main'}</div>
             </div>
@@ -282,7 +285,7 @@ const ProjectDetailPage = () => {
                 <div className="font-mono" style={{ flex: 1, fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {window.location.origin}/api/webhooks/github?projectId={project._id}
                 </div>
-                <button 
+                <button
                   onClick={handleCopyWebhook}
                   style={{ background: 'transparent', border: 'none', color: copied ? 'var(--green)' : 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
                 >
@@ -332,7 +335,20 @@ const ProjectDetailPage = () => {
               />
             </div>
           </div>
-          
+          <div style={{ marginTop: 20 }}>
+            <label style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>
+              STAGING URL (for DAST scanning)
+            </label>
+            <input
+              value={gateForm.stagingUrl}
+              onChange={(e) => setGateForm((prev) => ({ ...prev, stagingUrl: e.target.value }))}
+              placeholder="https://staging.your-portfolio.com"
+              style={{ width: '100%', padding: '10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-elevated)', color: 'var(--text-primary)', outline: 'none' }}
+            />
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+              Leave empty to skip the DAST step
+            </div>
+          </div>
           <div style={{ marginTop: 20 }}>
             <label style={{ display: 'block', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>NOTIFICATIONS</label>
             <div style={{ display: 'flex', gap: 24, padding: '12px', background: 'var(--bg-elevated)', borderRadius: 10 }}>
@@ -402,7 +418,7 @@ const ProjectDetailPage = () => {
               </div>
             ))}
           </div>
-          
+
           <form onSubmit={handleAddMember} style={{ marginTop: 24, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px auto', gap: 8 }}>
               <input
@@ -565,14 +581,14 @@ const ProjectDetailPage = () => {
         }
       >
         <div style={{ display: 'flex', gap: 16 }}>
-          <div 
-            style={{ 
-              width: 48, 
-              height: 48, 
-              borderRadius: 12, 
-              background: 'var(--red-dim)', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: 'var(--red-dim)',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0
             }}
@@ -584,8 +600,8 @@ const ProjectDetailPage = () => {
               Are you absolutely sure?
             </p>
             <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.5 }}>
-              This action cannot be undone. This will permanently delete the project 
-              <strong style={{ color: 'var(--text-primary)' }}> {project.name}</strong>, 
+              This action cannot be undone. This will permanently delete the project
+              <strong style={{ color: 'var(--text-primary)' }}> {project.name}</strong>,
               including all its pipeline history, scan results, and configuration.
             </p>
           </div>
