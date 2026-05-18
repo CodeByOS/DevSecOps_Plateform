@@ -110,10 +110,28 @@ const clearSession = async () => {
     }
 };
 
+const waitForZap = async (retries = 10, delayMs = 6000) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            await axios.get(`${ZAP_URL}/JSON/core/view/version`, {
+                params: { apikey: ZAP_KEY },
+                timeout: 5_000,
+            });
+            console.log(`  [DAST] ZAP is ready`);
+            return true;
+        } catch (err) {
+            console.warn(`  [DAST] ZAP not ready yet (attempt ${i + 1}/${retries}), waiting ${delayMs/1000}s...`);
+            await sleep(delayMs);
+        }
+    }
+    throw new Error(`ZAP is not reachable at ${ZAP_URL} after ${retries} attempts`);
+};
+
 //! Main entry: called by pipelineRunner.js 
 const runDast = async (stagingUrl, pipelineId) => {
     console.log(`  [DAST] Scanning: ${stagingUrl}`);
-    // First verify ZAP is reachable before starting
+    // Wait for ZAP to be ready (up to ~60 seconds)
+    await waitForZap(10, 6000);
     try {
         await axios.get(`${ZAP_URL}/JSON/core/view/version`, {
             params: { apikey: ZAP_KEY },
