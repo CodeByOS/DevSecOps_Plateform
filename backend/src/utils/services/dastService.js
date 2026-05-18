@@ -6,7 +6,7 @@ const ZAP_KEY = process.env.ZAP_API_KEY || '';
 const zap = (path, params = {}) =>
     axios.get(`${ZAP_URL}/JSON/${path}`, {
         params: { apikey: ZAP_KEY, ...params },
-        timeout: 30_000,
+        timeout: 10_000,
     });
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -113,6 +113,15 @@ const clearSession = async () => {
 //! Main entry: called by pipelineRunner.js 
 const runDast = async (stagingUrl, pipelineId) => {
     console.log(`  [DAST] Scanning: ${stagingUrl}`);
+    // First verify ZAP is reachable before starting
+    try {
+        await axios.get(`${ZAP_URL}/JSON/core/view/version`, {
+            params: { apikey: ZAP_KEY },
+            timeout: 5_000,
+        });
+    } catch (err) {
+        throw new Error(`ZAP is not reachable at ${ZAP_URL}: ${err.message}`);
+    }
 
     try {
         await accessTarget(stagingUrl);

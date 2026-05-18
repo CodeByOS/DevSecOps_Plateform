@@ -82,7 +82,7 @@ services:
   zap:
     image: zaproxy/zap-stable
     container_name: zap
-    restart: "no" # run only during scans
+    restart: always
 
     ports:
       - "8090:8090"

@@ -159,12 +159,18 @@ const runPipeline = async (pipelineId, project) => {
         await updateStep(pipelineId, 'dast', 'running');
         let dast;
         if (project.stagingUrl) {
-            dast = await runDast(project.stagingUrl, pipelineId.toString());
-            scanResult.dast = dast;
-            await updateStep(pipelineId, 'dast', 'success', {
-                highAlerts: dast.highAlerts,
-                xss: dast.xssCount,
-            });
+            try {
+                dast = await runDast(project.stagingUrl, pipelineId.toString());
+                scanResult.dast = dast;
+                await updateStep(pipelineId, 'dast', 'success', {
+                    highAlerts: dast.highAlerts,
+                    xss: dast.xssCount,
+                });
+            } catch (dastErr) {
+                console.error(`  [DAST] Scan failed: ${dastErr.message}`);
+                dast = emptyDast();
+                await updateStep(pipelineId, 'dast', 'failed', {}, dastErr.message);
+            }
         } else {
             dast = emptyDast();
             console.log('  [DAST] No stagingUrl configured — step skipped');
