@@ -89,11 +89,11 @@ const updateProject = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: 'Not authorized to update this project' });
   }
 
-  const { name, description, repoUrl, defaultBranch, gateConfig } = req.body;
+  const { name, description, repoUrl, defaultBranch, stagingUrl, gateConfig } = req.body;
 
   project = await Project.findByIdAndUpdate(
     req.params.id,
-    { name, description, repoUrl, defaultBranch, gateConfig },
+    { name, description, repoUrl, defaultBranch, stagingUrl, gateConfig },
     { new: true, runValidators: true }
   );
 
