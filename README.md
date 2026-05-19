@@ -78,7 +78,7 @@ graph TD
 
 ### 1. Clone & Environment
 ```bash
-git clone https://github.com/your-repo/devsecops-platform.git
+git clone https://github.com/CodeByOS/DevSecOps_Plateform.git
 cd devsecops-platform
 ```
 
