@@ -35,7 +35,7 @@ _model_info = {}
 _lock       = threading.RLock()    # guards replacement during /retrain
 
 
-# ── Load ──────────────────────────────────────────────────────────────────────
+# Load
 
 def load() -> bool:
     """
@@ -118,7 +118,7 @@ def _enrich_importances(pipeline, info: dict) -> dict:
     return info
 
 
-# ── Predict ───────────────────────────────────────────────────────────────────
+# Predict
 
 # Upper bound for any single feature (clamp to avoid score distortion)
 _MAX_FEATURE_VALUE = 999.0
@@ -170,7 +170,7 @@ def predict(features: dict) -> dict:
     # Raw probability (class 1 = risky)
     probability = float(pipeline.predict_proba(X)[0][1])
 
-    # ── Score calibration ────────────────────────────────────────────────────
+    # Score calibration
     # Using raw probability gives a bimodal distribution for well-separated
     # classes: most samples score near 0 or near 100, with little in between.
     # Instead we use the decision function (log-odds = logit(p)) and map it
@@ -186,7 +186,7 @@ def predict(features: dict) -> dict:
         decision = float(pipeline.decision_function(X)[0])
         # Map log-odds to [0, 100].
         # logit = 0 → p = 0.5 → score = 50 (boundary).
-        # We use a scale factor so that logit ±4 maps roughly to 0/100.
+        # scale factor so that logit ±4 maps roughly to 0/100.
         SCALE = 4.0
         clamped = max(-SCALE, min(decision, SCALE))
         score = int(round((clamped / SCALE + 1) / 2 * 100))
@@ -210,7 +210,7 @@ def predict(features: dict) -> dict:
     }
 
 
-# ── Metadata ──────────────────────────────────────────────────────────────────
+# Metadata 
 
 def get_info() -> dict:
     """Return a copy of the current model metadata."""
