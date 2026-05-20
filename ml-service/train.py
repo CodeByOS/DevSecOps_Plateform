@@ -46,19 +46,18 @@ RISKY_LABEL    = 1
 SAFE_LABEL     = 0
 
 # !! MUST MATCH pipelineRunner.js fallback weights and threshold !!
-# If you change these, update pipelineRunner.js runMlScoring fallback too.
 GATE_THRESHOLD = 70
 
 FEATURE_WEIGHTS = {
     "nb_critical":      15,
     "nb_high":           7,
-    "nb_medium":         2,   # added (was missing in original fallback)
+    "nb_medium":         2,
     "nb_critical_cves": 20,
     "nb_high_cves":     10,
-    "max_cvss":          3,   # added (was missing in original fallback)
+    "max_cvss":          3,
     "outdated_count":    0,   # low signal, keep at 0
     "nb_high_alerts":   10,
-    "nb_medium_alerts":  2,   # added (was missing in original fallback)
+    "nb_medium_alerts":  2,
     "nb_xss":            8,
     "nb_sqli":          12,
 }
@@ -66,7 +65,7 @@ FEATURE_WEIGHTS = {
 np.random.seed(RANDOM_SEED)
 
 
-# ── Synthetic data generation ─────────────────────────────────────────────────
+# Synthetic data generation
 
 def _raw_score(row: dict) -> float:
     """Compute the rule-based risk score for a feature row."""
@@ -137,7 +136,7 @@ def generate_dataset(n: int = N_SAMPLES) -> pd.DataFrame:
     return df
 
 
-# ── Model training ────────────────────────────────────────────────────────────
+# Model training
 
 def _extract_importances(pipeline: Pipeline) -> dict:
     """Pull feature importances from the fitted estimator."""
@@ -224,7 +223,7 @@ def train(df: pd.DataFrame):
     return best["pipeline"], best_name, best["f1"], best["auc"], importances
 
 
-# ── Persist model + metadata ──────────────────────────────────────────────────
+# Persist model + metadata
 
 def save(pipeline: Pipeline, algorithm: str, f1: float, auc: float, importances: dict):
     """Save model and metadata atomically (write to temp then rename)."""
@@ -244,7 +243,7 @@ def save(pipeline: Pipeline, algorithm: str, f1: float, auc: float, importances:
         "f1_score":            round(f1, 4),
         "auc_roc":             round(auc, 4),
         "training_samples":    N_SAMPLES,
-        "threshold":           GATE_THRESHOLD,  # ← NEW: stored so model.py can read it
+        "threshold":           GATE_THRESHOLD,
         "trained_at":          datetime.now(timezone.utc).isoformat(),
     }
 
@@ -257,7 +256,7 @@ def save(pipeline: Pipeline, algorithm: str, f1: float, auc: float, importances:
     return info
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+# Entry point
 
 if __name__ == "__main__":
     print(f"Generating {N_SAMPLES} synthetic samples…")

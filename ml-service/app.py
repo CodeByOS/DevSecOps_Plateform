@@ -29,12 +29,12 @@ if not _model_ready:
     print("[App] WARNING – model not loaded at startup. "
           "Run 'python train.py' then restart the service.")
 
-# ── Retrain state (for non-blocking retrain) ──────────────────────────────────
+# Retrain state (for non-blocking retrain)
 _retrain_lock   = threading.Lock()
 _retrain_status = {"running": False, "result": None, "error": None}
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+# Routes
 
 @app.route("/health", methods=["GET"])
 def health():
@@ -128,7 +128,7 @@ def retrain_status():
     return jsonify(status), 200
 
 
-# ── Background retrain worker ─────────────────────────────────────────────────
+# Background retrain worker
 
 def _run_retrain(samples: list):
     """
@@ -219,7 +219,7 @@ def _run_retrain(samples: list):
             _retrain_status["error"]   = str(exc)
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# Main
 
 if __name__ == "__main__":
     port  = int(os.environ.get("PORT", 5001))
