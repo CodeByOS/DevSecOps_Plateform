@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, AlertCircle, Zap } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, Zap } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 const field = (label, id, type, placeholder, value, onChange, show, onToggle) => (
@@ -140,13 +140,14 @@ const LoginPage = () => {
               width: 56, 
               height: 56, 
               borderRadius: 14,
-              background: 'linear-gradient(135deg, var(--blue), var(--purple))',
+              background: 'var(--bg-base)',
+              border: '1px solid var(--border)',
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(79, 163, 255, 0.2)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
             }}>
-              <Shield size={28} color="#fff" strokeWidth={2} />
+              <img src="/logo.svg" alt="Logo" style={{ width: 36, height: 36 }} />
             </div>
             <div>
               <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>

@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Shield } from 'lucide-react';
 import useAuth from '../hooks/useAuth';
 
 const NotFoundPage = () => {
@@ -15,11 +14,13 @@ const NotFoundPage = () => {
       <h1 style={{ color: 'var(--text-primary)', margin: '0 0 12px', fontSize: 24 }}>Page not found</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 32 }}>The page you're looking for doesn't exist.</p>
       <Link to={user ? "/dashboard" : "/"} style={{
-        display: 'inline-flex', alignItems: 'center', gap: 8,
-        padding: '10px 24px', borderRadius: 8,
-        background: 'var(--blue)', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600,
+        display: 'inline-flex', alignItems: 'center', gap: 10,
+        padding: '12px 28px', borderRadius: 12,
+        background: 'var(--bg-card)', border: '1px solid var(--border)',
+        color: 'var(--text-primary)', textDecoration: 'none', fontSize: 14, fontWeight: 700,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
       }}>
-        <Shield size={15} /> {user ? 'Go to Dashboard' : 'Back to Home'}
+        <img src="/logo.svg" alt="Logo" style={{ width: 18, height: 18 }} /> {user ? 'Go to Dashboard' : 'Back to Home'}
       </Link>
     </div>
   );
