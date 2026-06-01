@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, FolderKanban, ScrollText,
-  Shield, LogOut, Brain, X, Settings
+  LogOut, Brain, X, Settings
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 import useMediaQuery from '../../hooks/useMediaQuery';
@@ -79,14 +79,15 @@ const Sidebar = ({ isOpen, onClose }) => {
               whileHover={{ rotate: 15, scale: 1.1 }}
               style={{
                 width: 36, height: 36,
-                background: 'linear-gradient(135deg, var(--blue), var(--purple))',
+                background: 'var(--bg-base)',
+                border: '1px solid var(--border)',
                 borderRadius: 10,
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(79, 163, 255, 0.3)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
               }}>
-              <Shield size={18} color="#fff" strokeWidth={2.5} />
+              <img src="/logo.svg" alt="Logo" style={{ width: 24, height: 24 }} />
             </motion.div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>SecOps</div>

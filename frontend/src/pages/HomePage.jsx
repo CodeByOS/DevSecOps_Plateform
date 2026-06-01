@@ -58,11 +58,12 @@ const Navbar = () => {
             whileHover={{ rotate: 10 }}
             style={{
               width: 36, height: 36,
-              background: 'linear-gradient(135deg, var(--blue), var(--purple))',
+              background: 'var(--bg-base)',
+              border: '1px solid var(--border)',
               borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(79, 163, 255, 0.2)'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
             }}>
-            <Shield size={20} color="#fff" strokeWidth={2.5} />
+            <img src="/logo.svg" alt="Logo" style={{ width: 24, height: 24 }} />
           </motion.div>
           <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>SecOps Platform</span>
         </div>
@@ -609,8 +610,8 @@ const Footer = () => (
     flexWrap: 'wrap', gap: 24,
   }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Shield size={16} color="var(--blue)" />
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg-base)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img src="/logo.svg" alt="Logo" style={{ width: 20, height: 20 }} />
       </div>
       <span style={{ fontSize: 14, color: 'var(--text-muted)', fontWeight: 500 }}>
         © {new Date().getFullYear()} SecOps Platform. Built for Security Teams.
