@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   LayoutDashboard, FolderKanban, ScrollText,
   LogOut, Brain, X, Settings
@@ -19,6 +19,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const shouldReduce = useReducedMotion();
 
   const handleLogout = async () => {
     await logout();
@@ -76,7 +77,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <motion.div 
-              whileHover={{ rotate: 15, scale: 1.1 }}
+              whileHover={shouldReduce ? {} : { rotate: 15, scale: 1.1 }}
               style={{
                 width: 36, height: 36,
                 background: 'var(--bg-base)',
@@ -114,7 +115,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '20px 12px' }}>
+        <nav style={{ flex: 1, padding: '20px 12px', position: 'relative' }}>
           {navItems.map(({ to, icon: Icon, label }, idx) => (
             <NavLink
               key={to}
@@ -131,23 +132,43 @@ const Sidebar = ({ isOpen, onClose }) => {
                 fontSize: 14,
                 fontWeight: 600,
                 color: isActive ? 'var(--blue)' : 'var(--text-muted)',
-                background: isActive ? 'var(--blue-dim)' : 'transparent',
-                border: isActive ? '1px solid rgba(79, 163, 255, 0.2)' : '1px solid transparent',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'relative',
+                zIndex: 1,
+                transition: 'color 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               })}
-              onMouseEnter={e => {
-                if (!e.currentTarget.style.background.includes('var(--blue-dim)')) {
-                  e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+              onMouseEnter={(e) => {
+                const navLink = e.currentTarget;
+                if (!navLink.style.color.includes('var(--blue)')) {
+                  navLink.style.color = 'var(--text-primary)';
                 }
               }}
-              onMouseLeave={e => {
-                if (!e.currentTarget.style.background.includes('var(--blue-dim)')) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
+              onMouseLeave={(e) => {
+                const navLink = e.currentTarget;
+                if (!navLink.style.color.includes('var(--blue)')) {
+                  navLink.style.color = 'var(--text-muted)';
                 }
               }}
             >
-              <Icon size={18} strokeWidth={1.8} />
-              <span>{label}</span>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-pill"
+                      transition={shouldReduce ? { duration: 0 } : { type: 'spring', damping: 25, stiffness: 200 }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'var(--blue-dim)',
+                        border: '1px solid rgba(79, 163, 255, 0.2)',
+                        borderRadius: 12,
+                        zIndex: -1
+                      }}
+                    />
+                  )}
+                  <Icon size={18} strokeWidth={1.8} />
+                  <span>{label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -188,8 +209,8 @@ const Sidebar = ({ isOpen, onClose }) => {
               </div>
             </div>
             <motion.button
-              whileHover={{ scale: 1.02, background: 'var(--red-dim)', color: 'var(--red)', borderColor: 'rgba(241, 122, 95, 0.3)' }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={shouldReduce ? {} : { scale: 1.02, background: 'var(--red-dim)', color: 'var(--red)', borderColor: 'rgba(241, 122, 95, 0.3)' }}
+              whileTap={shouldReduce ? {} : { scale: 0.98 }}
               onClick={handleLogout}
               style={{
                 width: '100%',

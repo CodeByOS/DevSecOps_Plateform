@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ShieldAlert, BarChart3, Globe, Briefcase, ChevronDown, LayoutDashboard, Zap, Activity, ShieldCheck, Target, Check } from 'lucide-react';
 import Card from '../components/ui/Card';
 import EmptyState from '../components/ui/EmptyState';
@@ -8,6 +8,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import MiniTrend from '../components/charts/MiniTrend';
 import ScoreGauge from '../components/charts/ScoreGauge';
 import Skeleton from '../components/ui/Skeleton';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
 import useProjects from '../hooks/useProjects';
 import usePipelineStats from '../hooks/usePipelineStats';
 import useDocumentTitle from '../hooks/useDocumentTitle';
@@ -17,7 +18,9 @@ const StatCard = ({ label, value, hint, color, icon: Icon, delay }) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
       <div>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-        <div style={{ fontSize: 32, fontWeight: 800, color: color ?? 'var(--text-primary)', letterSpacing: '-1px' }}>{value}</div>
+        <div style={{ fontSize: 32, fontWeight: 800, color: color ?? 'var(--text-primary)', letterSpacing: '-1px' }}>
+          {typeof value === 'number' ? <AnimatedCounter value={value} duration={0.8} /> : value}
+        </div>
         {hint && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, fontWeight: 500 }}>{hint}</div>}
       </div>
       {Icon && (
@@ -44,6 +47,12 @@ const container = {
       staggerChildren: 0.05
     }
   }
+};
+
+/** Staggered entry animation for list items */
+const listItem = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }
 };
 
 const DashboardPage = () => {
@@ -102,7 +111,23 @@ const DashboardPage = () => {
             <LayoutDashboard size={24} color="var(--blue)" strokeWidth={2} />
           </div>
           <div>
-            <h2 style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px' }}>Dashboard</h2>
+            <motion.h2 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              style={{ color: 'var(--text-primary)', margin: 0, fontSize: 28, fontWeight: 700, letterSpacing: '-0.5px', display: 'flex', gap: '0.05em' }}
+            >
+              {'Dashboard'.split('').map((char, i) => (
+                <motion.span
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.04 * i, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.h2>
             <div style={{ fontSize: 15, color: 'var(--text-muted)', marginTop: 4, fontWeight: 500 }}>
               {selectedProjectId ? `Performance overview for ${selectedProject?.name}` : 'Global security posture across all projects'}
             </div>
@@ -366,39 +391,45 @@ const DashboardPage = () => {
                       <br />All security gates are clear.
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <motion.div 
+                      variants={container}
+                      initial="hidden"
+                      animate="show"
+                      style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
+                    >
                       {stats.recentlyBlocked.map(p => (
-                        <Link 
-                          to={`/pipelines/${p._id}`}
-                          key={p._id}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px 16px',
-                            background: 'rgba(0,0,0,0.2)',
-                            border: '1px solid rgba(241, 122, 95, 0.3)',
-                            borderRadius: 12,
-                            textDecoration: 'none',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--red)'}
-                          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(241, 122, 95, 0.3)'}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 700 }}>{p.project?.name}</span>
-                            <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, marginTop: 2 }}>{p.branch}</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: 10, color: 'var(--red)', fontWeight: 700, textTransform: 'uppercase' }}>Fail Score</div>
-                              <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{p.score}</span>
+                        <motion.div key={p._id} variants={listItem}>
+                          <Link 
+                            to={`/pipelines/${p._id}`}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '12px 16px',
+                              background: 'rgba(0,0,0,0.2)',
+                              border: '1px solid rgba(241, 122, 95, 0.3)',
+                              borderRadius: 12,
+                              textDecoration: 'none',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--red)'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(241, 122, 95, 0.3)'}
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontSize: 13, color: 'var(--text-primary)', fontWeight: 700 }}>{p.project?.name}</span>
+                              <span style={{ fontSize: 11, color: 'var(--red)', fontWeight: 600, marginTop: 2 }}>{p.branch}</span>
                             </div>
-                            <StatusBadge status="blocked" />
-                          </div>
-                        </Link>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ textAlign: 'right' }}>
+                                <div style={{ fontSize: 10, color: 'var(--red)', fontWeight: 700, textTransform: 'uppercase' }}>Fail Score</div>
+                                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-primary)' }}>{p.score}</span>
+                              </div>
+                              <StatusBadge status="blocked" />
+                            </div>
+                          </Link>
+                        </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
                   )}
                 </Card>
               ) : (

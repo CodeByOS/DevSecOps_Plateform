@@ -1,14 +1,33 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Shield, GitBranch, GitCommit, Clock, Share2, Check, ExternalLink, AlertTriangle, Info, ChevronRight, ChevronLeft } from 'lucide-react';
 import { overridePipeline, getPipeline } from '../api/pipelines';
 import Card from '../components/ui/Card';
 import StatusBadge from '../components/ui/StatusBadge';
 import ScoreGauge from '../components/charts/ScoreGauge';
+import AnimatedCounter from '../components/ui/AnimatedCounter';
 import useAuth from '../hooks/useAuth';
 import usePipeline from '../hooks/usePipeline';
 import useToast from '../hooks/useToast';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+
+/** Container animation for staggered timeline steps */
+const timelineContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+};
+
+/** Individual timeline step animation */
+const timelineItem = {
+  hidden: { opacity: 0, x: -8 },
+  show: { opacity: 1, x: 0, transition: { duration: 0.4, ease: [0.23, 1, 0.32, 1] } }
+};
 
 const PipelineDetailPage = () => {
   const { id } = useParams();
@@ -185,9 +204,14 @@ const PipelineDetailPage = () => {
           <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, fontWeight: 600, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Clock size={16} /> Execution Timeline
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          <motion.div 
+            style={{ display: 'flex', flexDirection: 'column', gap: 0 }}
+            variants={timelineContainer}
+            initial="hidden"
+            animate="show"
+          >
             {timelineSteps.map((step, idx) => (
-              <div key={step.name} style={{ display: 'flex', gap: 16 }}>
+              <motion.div key={step.name} variants={timelineItem} style={{ display: 'flex', gap: 16 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24 }}>
                   <div style={{
                     width: 12, height: 12, borderRadius: '50%',
@@ -229,9 +253,9 @@ const PipelineDetailPage = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </Card>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -242,15 +266,15 @@ const PipelineDetailPage = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-muted)' }}>SAST</span>
-                  <span style={{ color: scan?.sast?.critical > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}>{scan?.sast?.critical ?? 0} Crit</span>
+                  <span style={{ color: scan?.sast?.critical > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}><AnimatedCounter value={scan?.sast?.critical ?? 0} duration={0.8} /> Crit</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-muted)' }}>SCA</span>
-                  <span style={{ color: scan?.sca?.criticalCves > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}>{scan?.sca?.criticalCves ?? 0} Crit</span>
+                  <span style={{ color: scan?.sca?.criticalCves > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}><AnimatedCounter value={scan?.sca?.criticalCves ?? 0} duration={0.8} /> Crit</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-muted)' }}>DAST</span>
-                  <span style={{ color: scan?.dast?.highAlerts > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}>{scan?.dast?.highAlerts ?? 0} High</span>
+                  <span style={{ color: scan?.dast?.highAlerts > 0 ? 'var(--red)' : 'var(--text-primary)', fontWeight: 600 }}><AnimatedCounter value={scan?.dast?.highAlerts ?? 0} duration={0.8} /> High</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-muted)' }}>ML Prob</span>

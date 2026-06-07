@@ -245,6 +245,11 @@ button {
   100% { box-shadow: 0 0 0 0 rgba(66, 199, 127, 0); }
 }
 
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: calc(200% + 200px) 0; }
+}
+
 .status-pulse {
   width: 8px;
   height: 8px;

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Plus, X, FolderKanban, Globe, ChevronRight, Code2, GitBranch, LayoutGrid } from 'lucide-react';
 import { createProject } from '../api/projects';
 import Card from '../components/ui/Card';
@@ -23,6 +23,12 @@ const container = {
   }
 };
 
+/** Staggered entry animation for table rows */
+const listItem = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }
+};
+
 const ProjectsPage = () => {
   useDocumentTitle('Projects');
   const { projects, loading, error, refresh } = useProjects();
@@ -36,6 +42,7 @@ const ProjectsPage = () => {
     stagingUrl: '',
   });
   const [saving, setSaving] = useState(false);
+  const contentRef = useRef(null);
 
   const setField = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
 
@@ -117,13 +124,29 @@ const ProjectsPage = () => {
       <AnimatePresence>
         {showCreate && (
           <motion.div 
-            initial={{ opacity: 0, y: -20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -20, height: 0 }}
-            transition={{ duration: 0.3 }}
+            key="form"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             style={{ overflow: 'hidden' }}
           >
-            <Card style={{ border: '1px solid var(--blue)', boxShadow: '0 0 20px rgba(79, 163, 255, 0.1)', marginBottom: 12 }}>
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: contentRef.current?.scrollHeight || 'auto' }}
+              exit={{ height: 0 }}
+              transition={{
+                height: {
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 30,
+                  mass: 1
+                }
+              }}
+              style={{ overflow: 'hidden' }}
+            >
+              <div ref={contentRef}>
+                <Card style={{ border: '1px solid var(--blue)', boxShadow: '0 0 20px rgba(79, 163, 255, 0.1)', marginBottom: 12 }}>
               <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, fontWeight: 600, textTransform: 'uppercase' }}>Create New Project</div>
               <form onSubmit={submitCreate} style={{ display: 'grid', gap: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
@@ -197,6 +220,8 @@ const ProjectsPage = () => {
                 </div>
               </form>
             </Card>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -248,7 +273,13 @@ const ProjectsPage = () => {
                 </thead>
                 <tbody>
                   {projects.map((p) => (
-                    <tr key={p._id} style={{ transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <motion.tr 
+                      key={p._id} 
+                      variants={listItem}
+                      style={{ transition: 'background 0.2s' }} 
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'} 
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
                       <td style={tableCell}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ 
@@ -310,7 +341,7 @@ const ProjectsPage = () => {
                           Manage <ChevronRight size={14} />
                         </Link>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>

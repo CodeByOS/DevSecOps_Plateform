@@ -1,4 +1,7 @@
+import { motion, useReducedMotion } from 'framer-motion';
+
 const ScoreGauge = ({ score = 0, size = 140 }) => {
+  const shouldReduce = useReducedMotion();
   const radius = 56;
   const center = 70;
   const circumference = Math.PI * radius;
@@ -15,13 +18,18 @@ const ScoreGauge = ({ score = 0, size = 140 }) => {
         strokeWidth="10"
         fill="none"
       />
-      <path
+      <motion.path
         d="M14 70 A56 56 0 0 1 126 70"
         stroke={color}
         strokeWidth="10"
         fill="none"
         strokeDasharray={circumference}
-        strokeDashoffset={offset}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: shouldReduce ? offset : offset }}
+        transition={{ 
+          duration: shouldReduce ? 0 : 1.2, 
+          ease: 'easeOut'
+        }}
       />
       <text x="70" y="68" textAnchor="middle" fill="var(--text-primary)" style={{ fontSize: 18, fontWeight: 700 }}>
         {clamped}

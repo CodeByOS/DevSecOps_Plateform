@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ScrollText, Filter, Download, X, Calendar, User, Terminal, Search } from 'lucide-react';
 import Card from '../components/ui/Card';
 import useAuditLogs from '../hooks/useAuditLogs';
@@ -9,7 +10,25 @@ const tableCell = {
   fontSize: 13,
 };
 
+/** Container animation for staggered table rows */
+const tableContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.04
+    }
+  }
+};
+
+/** Individual table row animation */
+const tableRow = {
+  hidden: { opacity: 0, y: 8 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }
+};
+
 const AuditLogPage = () => {
+  const shouldReduce = useReducedMotion();
   const [actionFilter, setActionFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -212,9 +231,17 @@ const AuditLogPage = () => {
                 <th style={{ ...tableCell, color: 'var(--text-muted)', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.5px' }}>IP Address</th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody
+              variants={tableContainer}
+              initial="hidden"
+              animate="show"
+              key={logs.length}
+            >
               {logs.map((log) => (
-                <tr key={log._id} style={{ transition: 'background 0.2s' }}
+                <motion.tr
+                  key={log._id}
+                  variants={tableRow}
+                  style={{ transition: 'background 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                 >
@@ -252,9 +279,9 @@ const AuditLogPage = () => {
                   <td style={{ ...tableCell, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
                     {log.ipAddress ?? '—'}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
-            </tbody>
+            </motion.tbody>
           </table>
           </div>
         )}

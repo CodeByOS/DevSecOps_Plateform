@@ -1,6 +1,8 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 const StatusBadge = ({ status }) => {
+  const shouldReduce = useReducedMotion();
+
   const map = {
     blocked:   { bg: 'var(--red-dim)',    fg: 'var(--red)',    border: 'rgba(241, 122, 95, 0.3)' },
     failed:    { bg: 'var(--red-dim)',    fg: 'var(--red)',    border: 'rgba(241, 122, 95, 0.3)' },
@@ -16,7 +18,7 @@ const StatusBadge = ({ status }) => {
 
   return (
     <motion.span
-      initial={{ scale: 0.9, opacity: 0 }}
+      initial={{ scale: 0.85, opacity: 0 }}
       animate={{ 
         scale: 1, 
         opacity: 1,
@@ -27,7 +29,7 @@ const StatusBadge = ({ status }) => {
         ] : '0 0 0 rgba(0,0,0,0)'
       }}
       transition={{ 
-        duration: isRunning ? 2 : 0.3, 
+        duration: shouldReduce ? 0 : (isRunning ? 2 : 0.3), 
         repeat: isRunning ? Infinity : 0 
       }}
       style={{
@@ -51,7 +53,7 @@ const StatusBadge = ({ status }) => {
       {isRunning && (
         <motion.span 
           animate={{ opacity: [1, 0.4, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
+          transition={{ duration: shouldReduce ? 0 : 1.5, repeat: Infinity }}
           style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor' }}
         />
       )}
